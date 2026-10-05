@@ -1,0 +1,7 @@
+# Prose / docs
+*.md           diff=wordish
+*.txt          diff=wordish
+docs/**/*.html diff=wordish
+
+# JSON: treat keys/values/punctuation as separate tokens
+*.json         diff=jsonish

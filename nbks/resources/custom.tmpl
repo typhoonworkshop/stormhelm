@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="resources/favicon.ico">
+    <style type="text/css">
+      @import url("observable:styles/index.css");
+      @import url("@fontsource-variable/inter/wght.css");
+      @import url("@fontsource-variable/inter/wght-italic.css");
+      @import url("@fontsource-variable/source-serif-4/wght.css");
+      @import url("@fontsource-variable/source-serif-4/wght-italic.css");
+      @import url("@fontsource-variable/spline-sans-mono/wght.css");
+      @import url("@fontsource-variable/spline-sans-mono/wght-italic.css");
+      @import url("resources/inapm.css");
+      /* force no margin even in the html tag */
+      * {
+        margin-top:0 !important;
+      }
+      /* change this for overall background color */
+      html {
+        background-color: white;
+        margin:0;
+        padding:2vw; /* change this to override template default */
+        border:0;
+      }
+      /* and also this for body properties */
+      body {
+        display: flex;
+        background-color: white;
+        max-width: none;
+        margin:0;
+        padding:0;
+        border:0;
+      }
+      /* keep the collapsed nav's negative margin from causing a horizontal scrollbar */
+      html { overflow-x: hidden; }
+      nav {
+        font-family: var(--sans-serif);
+        font-size: 90%;
+        width: 220px; /* collapsible TOC */
+        flex: 0 0 auto;
+        padding-top: 3rem; /* room for the fixed toggle button */
+        padding-right: 1rem;
+        box-sizing: border-box;
+        transition: margin-left 0.25s ease;
+      }
+      nav.collapsed {
+        margin-left: -220px; /* slides the nav's right edge off to the left */
+      }
+      main {
+        width: 100%; /* override the shrink-to-fit caused by flex + margin:auto */
+        padding-left: 2.5rem;
+      }
+      #toc-toggle {
+        position: fixed;
+        top: 1rem;
+        left: 1rem;
+        z-index: 100;
+        width: 2.25rem;
+        height: 2.25rem;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        background: white;
+        cursor: pointer;
+        font-size: 1.1rem;
+        line-height: 1;
+      }
+      /* add more custom styles here */
+    </style>
+  </head>
+  <body>
+    <button id="toc-toggle" aria-controls="toc" aria-expanded="true" aria-label="Toggle table of contents">✕</button>
+    <nav id="toc">
+      <ul>
+        <p style="font-family: var(--serif);"><a href="index.html">STORM HELM</a></p>
+        <li>Outcomes</li>
+        <ul>
+          <li><a href="stormreader.html">Stormreader Visualizaton</a></li>
+        </ul>
+      </ul>
+    </nav>
+    <main></main>
+    <script>
+      (function () {
+        var toggle = document.getElementById("toc-toggle");
+        var nav = document.getElementById("toc");
+        if (!toggle || !nav) return;
+        toggle.addEventListener("click", function () {
+          var collapsed = nav.classList.toggle("collapsed");
+          toggle.textContent = collapsed ? "☰" : "✕";
+          toggle.setAttribute("aria-expanded", String(!collapsed));
+        });
+      })();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,32 @@
+code {
+  color: #015f86;
+}
+
+u {
+  text-decoration: none;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 1rem;
+}
+
+.supply {
+  font-style: italic;
+}
+
+.faded-word {
+/*     display: inline-block; */
+  opacity: 0;
+}
+
+.faded-activated {
+  transition: opacity .7s ease-in-out;
+  opacity: 1;
+}
+
+.nb {
+  font-size: 85%;
+}
+
+#nbs {
+  display: none;
+}
