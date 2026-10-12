@@ -3,7 +3,14 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" type="image/x-icon" href="resources/favicon.ico">
+    <meta name="description" content="We steer an endlessly self-generating language model along the Beaufort arc of Conrad’s Typhoon. The more we steer, the more it degenerates. Who is steering the AI storm?">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Typhoon">
+    <meta property="og:description" content="We steer an endlessly self-generating language model along the Beaufort arc of Conrad’s Typhoon. The more we steer, the more it degenerates. Who is steering the AI storm?">
+    <meta name="twitter:card" content="summary">
+    <link rel="icon" href="resources/favicon.ico" sizes="32x32">
+    <link rel="icon" href="resources/favicon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="resources/home-screen-icon.png">
     <style type="text/css">
       @import url("observable:styles/index.css");
       @import url("@fontsource-variable/inter/wght.css");
@@ -40,17 +47,25 @@
         font-size: 90%;
         width: 220px; /* collapsible TOC */
         flex: 0 0 auto;
+        position: sticky;
+        top: 2vw;
+        align-self: flex-start;
         padding-top: 3rem; /* room for the fixed toggle button */
         padding-right: 1rem;
         box-sizing: border-box;
-        transition: margin-left 0.25s ease;
+        transition: margin-left 0.25s ease, visibility 0.25s;
       }
       nav.collapsed {
         margin-left: -220px; /* slides the nav's right edge off to the left */
+        visibility: hidden;
+      }
+      #toc ul {
+        list-style: none;
       }
       main {
         width: 100%; /* override the shrink-to-fit caused by flex + margin:auto */
         padding-left: 2.5rem;
+        overflow-wrap: break-word;
       }
       #toc-toggle {
         position: fixed;
@@ -66,22 +81,51 @@
         font-size: 1.1rem;
         line-height: 1;
       }
+      @media (max-width: 800px) {
+        html {
+          padding: 16px;
+        }
+        nav {
+          position: fixed;
+          top: 0;
+          bottom: 0;
+          left: 0;
+          align-self: stretch;
+          z-index: 50;
+          overflow-y: auto;
+          background: white;
+          box-shadow: 0 0 1.5rem rgba(0, 0, 0, 0.12);
+        }
+        nav.collapsed {
+          box-shadow: none;
+        }
+        main {
+          padding-left: 0;
+          padding-top: 3rem;
+        }
+      }
+      @media (pointer: coarse) {
+        #toc li a {
+          display: inline-block;
+          padding: 0.45em 0;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        nav {
+          transition: none;
+        }
+      }
       /* add more custom styles here */
     </style>
   </head>
   <body>
-    <button id="toc-toggle" aria-controls="toc" aria-expanded="true" aria-label="Toggle table of contents">✕</button>
+    <button id="toc-toggle" aria-controls="toc" aria-expanded="true" aria-label="Toggle menu">✕</button>
     <nav id="toc">
       <ul>
-        <p style="font-family: var(--serif);"><a href="index.html">STORM HELM</a></p>
-        <li>Outcomes</li>
-        <ul>
-          <li><a href="stormreader.html">Stormreader Visualizaton</a></li>
-        </ul>
-        <li>Analysis</li>
-        <ul>
-          <li><a href="typhoon-analysis.html">Typhoon Analysis</a></li>
-        </ul>
+        <p style="font-family: var(--serif);"><a href="index.html">Typhoon</a></p>
+        <li><a href="https://openreview.net/pdf?id=xYIJySuMt6">Paper</a></li>
+        <li><a href="https://typhoonworkshop.github.io/typhoon/">Art Installation</a></li>
+        <li><a href="typhoon-analysis.html">Datafied Close Reading</a></li>
       </ul>
     </nav>
     <main></main>
@@ -90,11 +134,26 @@
         var toggle = document.getElementById("toc-toggle");
         var nav = document.getElementById("toc");
         if (!toggle || !nav) return;
-        toggle.addEventListener("click", function () {
-          var collapsed = nav.classList.toggle("collapsed");
+        function setCollapsed(collapsed) {
+          nav.classList.toggle("collapsed", collapsed);
           toggle.textContent = collapsed ? "☰" : "✕";
           toggle.setAttribute("aria-expanded", String(!collapsed));
+        }
+        toggle.addEventListener("click", function () {
+          setCollapsed(!nav.classList.contains("collapsed"));
         });
+        var narrow = window.matchMedia("(max-width: 800px)");
+        if (narrow.matches) {
+          nav.style.transition = "none";
+          setCollapsed(true);
+          nav.offsetWidth;
+          nav.style.transition = "";
+        }
+        function onWidthChange(event) {
+          setCollapsed(event.matches);
+        }
+        if (narrow.addEventListener) narrow.addEventListener("change", onWidthChange);
+        else narrow.addListener(onWidthChange);
       })();
     </script>
   </body>

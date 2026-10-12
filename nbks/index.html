@@ -1,9 +1,162 @@
 <!doctype html>
 <notebook theme="air">
-  <title>Stormhelm</title>
-  <script id="1" type="text/markdown">
-    <span style="float: right; font-variant: small-caps;">Working Draft</span>
-    # <cite>Typhoon</cite> &nbsp;•&nbsp;Stormhelm
-    ## https://stormhelm.net is the website of the Typhoon Project.
+  <title>Activation Steering the Nan-Shan in Typhoon</title>
+  <script id="1" type="text/html" output="page">
+    <article class="paper">
+      <header class="paper-header">
+        <h1>Activation Steering the <span style="white-space: nowrap;">Nan-Shan</span> in Typhoon</h1>
+        <ul class="paper-authors">
+          <li><a href="https://weimegan.github.io/">Megan Wei</a></li>
+          <li><a href="https://damondpham.github.io/">Damon Pham</a></li>
+          <li><a href="https://programmatology.shadoof.net/">John Cayley</a></li>
+          <li><a href="https://cs.brown.edu/people/epavlick/">Ellie Pavlick</a></li>
+        </ul>
+        <p class="paper-affiliation">Brown University</p>
+        <p class="paper-venue">NeurIPS Creative AI Track 2026</p>
+        <p class="paper-links">
+          <a href="https://openreview.net/pdf?id=xYIJySuMt6">Paper</a><span aria-hidden="true">&nbsp;•</span>
+          <a href="https://typhoonworkshop.github.io/typhoon/">Art Installation</a><span aria-hidden="true">&nbsp;•</span>
+          <a href="typhoon-analysis.html">Datafied Close Reading</a>
+        </p>
+      </header>
+      <section class="paper-section">
+        <p><cite>Typhoon</cite> is an audiovisual installation based on Joseph Conrad’s novella, in which Captain MacWhirr steers the steamer Nan-Shan directly into and through a catastrophic storm. The novella is a study of what happens when the scale of a phenomenon exceeds the practical and conceptual frameworks available to comprehend it and of the paralysis that sometimes follows a demand for action in such overwhelming circumstances. We chose the text of <cite>Typhoon</cite> to reflect on human culture’s current AI moment. We prompt a large language model, seeded with Conrad’s original language, to feed endlessly on its own output, and explore when and how the text becomes increasingly alien and unwieldy as time progresses, including deviations from the narrative, digressions into the model’s own instructions and thinking, and long periods of incoherent rumination. We employ methods from <i>activation steering</i>, including a novel <i>adaptive steering</i> method we introduce, to control the rhythm of the narrative and the model’s digressions over long stretches of generation. The simultaneous efficacy and unpredictability of this steering showcases the tension between the perceived interpretability of AI, and the reality of a system that remains outside our comprehension and control.</p>
+      </section>
+      <section class="paper-section">
+        <div class="paper-section-head">
+          <h2>BibTeX</h2>
+          <button id="copy-bibtex" type="button" style="display: none;">Copy</button>
+        </div>
+        <pre id="bibtex">@inproceedings{wei2026activation,
+      title={Activation Steering the Nan-Shan in Typhoon},
+      author={Megan Wei and Damon Pham and John Cayley and Ellie Pavlick},
+      booktitle={The Fortieth Annual Conference on Neural Information Processing Systems Creative AI Track: Agency},
+      year={2026},
+      url={https://openreview.net/forum?id=xYIJySuMt6}
+    }</pre>
+      </section>
+    </article>
+  </script>
+  <script id="2" type="module">
+    const bibtex = page.querySelector("#bibtex");
+    const copyBibtex = page.querySelector("#copy-bibtex");
+    if (navigator.clipboard) {
+      let reset;
+      copyBibtex.style.display = "";
+      copyBibtex.onclick = async () => {
+        try {
+          await navigator.clipboard.writeText(bibtex.textContent);
+          copyBibtex.textContent = "Copied";
+        } catch {
+          window.getSelection().selectAllChildren(bibtex);
+          copyBibtex.textContent = "Selected";
+        }
+        clearTimeout(reset);
+        reset = setTimeout(() => (copyBibtex.textContent = "Copy"), 2000);
+      };
+    }
+  </script>
+  <script id="3" type="text/html">
+    <style>
+      #toc,
+      #toc-toggle {
+        display: none;
+      }
+      main {
+        padding-left: 0;
+        padding-top: 0;
+      }
+      .paper {
+        max-width: 640px;
+        margin: 0 auto;
+        padding: 1.5rem 0 3rem;
+      }
+      .paper-header {
+        text-align: center;
+        padding-bottom: 2rem;
+        margin-bottom: 2rem;
+        border-bottom: 1px solid var(--theme-foreground-faintest);
+      }
+      .paper-header > * {
+        max-width: none;
+      }
+      .paper h1 {
+        margin-bottom: 1.1rem;
+        font-size: clamp(2rem, 1.25rem + 3vw, 2.75rem);
+        line-height: 1.12;
+      }
+      .paper-authors {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 0.15rem 1.25rem;
+        margin-bottom: 0.4rem;
+        padding: 0;
+        list-style: none;
+        font-size: 1.2rem;
+      }
+      .paper-affiliation {
+        margin-bottom: 0.1rem;
+      }
+      .paper-venue {
+        margin-bottom: 1rem;
+      }
+      .paper-links a {
+        white-space: nowrap;
+      }
+      .paper-links span {
+        margin: 0 0.3em;
+        color: var(--theme-foreground-faint);
+      }
+      @media (max-width: 480px) {
+        .paper-links {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 0.2rem;
+        }
+        .paper-links span {
+          display: none;
+        }
+      }
+      @media (pointer: coarse) {
+        .paper-links a {
+          display: inline-block;
+          padding: 0.4em 0;
+        }
+      }
+      .paper-section {
+        margin-bottom: 2.25rem;
+      }
+      .paper-section-head {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 1rem;
+        margin-bottom: 0.6rem;
+      }
+      .paper-section-head h2 {
+        margin-bottom: 0;
+      }
+      #copy-bibtex {
+        padding: 0;
+        border: 0;
+        background: none;
+        color: var(--theme-foreground-focus);
+        font: inherit;
+        cursor: pointer;
+      }
+      #copy-bibtex:hover {
+        text-decoration: underline;
+      }
+      #bibtex {
+        margin: 0;
+        padding: 0.9rem 1rem;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+        font-size: 13px;
+        line-height: 1.6;
+      }
+    </style>
   </script>
 </notebook>
