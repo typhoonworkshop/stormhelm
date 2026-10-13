@@ -8,14 +8,14 @@
     <small><i>for the collaborative </i>Typhoon<i> project with<br>
     Ellie Pavlick, Megan Wei, and Damon Pham</i></small></p>
   </script>
-  <script id="18" type="module">
+  <script id="18" type="module" hidden="">
     const c1 = sections.slice(0, 8).map((s, i) => `    ${i + 1}. [${s.desc}](#${s.id})`).join("\r");
     const c2 = sections.slice(8, 19).map((s, i) => `    ${i + 1}. [${s.desc}](#${s.id})`).join("\r");
     const c3 = sections.slice(19, 25).map((s, i) => `    ${i + 1}. [${s.desc}](#${s.id})`).join("\r");
     const c4 = sections.slice(25, 44).map((s, i) => `    ${i + 1}. [${s.desc}](#${s.id})`).join("\r");
     const c5 = sections.slice(44, 57).map((s, i) => `    ${i + 1}. [${s.desc}](#${s.id})`).join("\r");
     const c6 = sections.slice(57, 67).map((s, i) => `    ${i + 1}. [${s.desc}](#${s.id})`).join("\r");
-    display(md`## Contents<br><br>
+    md`## Contents<br><br>
     [TYPHOON](#typhoon)
       - **[I](#i)**
     ${c1}
@@ -34,7 +34,7 @@
     - [Synopsis](#synopsis)
     - [Bibliography](#bibliography)
     - [Notes & Visualizations](#notes-and-visualizations)
-    `)
+    `
   </script>
   <script id="99001" type="module">
     // Contents in the site menu, with the section being read highlighted
@@ -116,8 +116,14 @@
     ---
 
     ## _Typhoon_
+    Joseph Conrad<br>
+    1902
+
+    ---
   </script>
   <script id="9843" type="text/markdown">
+    <div style="margin-left: 2em; max-width: calc(640px - 4em); font-size: 0.85em; line-height: 1.3; color: var(--theme-foreground-muted);">
+
     <h4 id="legend"><i>Legend</i></h4>
 
     Phrases marked in the text are to be given special _attention_ by the model whenever it is in a corresponding beaufort state:
@@ -127,6 +133,8 @@
     - __double-underscore bold__: character-related phraseology related to beaufort scale
 
     `bf` above each paragraph: its Beaufort rating, from 0 (calm) to 12 (hurricane force).
+
+    </div>
   </script>
   <script id="38" type="module">
     typhoon.c0 = {text: "I", start: 0, end: 58}
