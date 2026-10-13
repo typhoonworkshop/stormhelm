@@ -50,7 +50,9 @@
         position: sticky;
         top: 2vw;
         align-self: flex-start;
-        padding-top: 3rem; /* room for the fixed toggle button */
+        max-height: calc(100vh - 2vw);
+        overflow-y: auto;
+        border-top: 3rem solid transparent; /* room for the fixed toggle button; unlike padding, it stays put when the menu scrolls */
         padding-right: 1rem;
         box-sizing: border-box;
         transition: margin-left 0.25s ease, visibility 0.25s;
@@ -154,6 +156,10 @@
         }
         if (narrow.addEventListener) narrow.addEventListener("change", onWidthChange);
         else narrow.addListener(onWidthChange);
+        // on narrow screens, close the menu once a link in it is followed
+        nav.addEventListener("click", function (event) {
+          if (narrow.matches && event.target.closest("a")) setCollapsed(true);
+        });
       })();
     </script>
   </body>

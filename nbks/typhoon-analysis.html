@@ -1,8 +1,8 @@
 <!doctype html>
 <notebook theme="air">
-  <title>Typhoon Analysis</title>
+  <title>Datafied Close Reading of Typhoon</title>
   <script id="16" type="text/markdown">
-    # Typhoon Analysis
+    # Datafied Close Reading of _Typhoon_
 
     <p style="text-align: right;">John Cayley<br>
     <small><i>for the collaborative </i>Typhoon<i> project with<br>
@@ -36,10 +36,97 @@
     - [Notes & Visualizations](#notes-and-visualizations)
     `)
   </script>
+  <script id="9893" type="module">
+    // Contents in the site menu, with the section being read highlighted
+    {
+      const nav = document.getElementById("toc");
+      const toc = document.createElement("div");
+      toc.className = "toc-contents";
+
+      function link(parent, href, text) {
+        const a = document.createElement("a");
+        a.href = href;
+        a.textContent = text;
+        a.dataset.target = href.slice(1);
+        parent.append(a);
+        return a;
+      }
+      function line(href, text, className) {
+        const p = document.createElement("p");
+        if (className) p.className = className;
+        toc.append(p);
+        return link(p, href, text);
+      }
+
+      const title = document.createElement("p");
+      title.className = "toc-heading";
+      title.textContent = "Contents";
+      toc.append(title);
+      line("#legend", "Legend");
+
+      for (const chapter of [...chapters].sort((a, b) => a.start - b.start)) {
+        line(`#${String(chapter.text).toLowerCase()}`, chapter.text, "toc-chapter");
+        const list = document.createElement("ol");
+        for (const section of sections.filter((s) => s.start >= chapter.start && s.start <= chapter.end)) {
+          const li = document.createElement("li");
+          link(li, `#${section.id}`, section.desc);
+          list.append(li);
+        }
+        toc.append(list);
+      }
+      for (const [href, text] of [
+        ["#note-on-the-text", "Note on the text"],
+        ["#synopsis", "Synopsis"],
+        ["#bibliography", "Bibliography"],
+        ["#notes-and-visualizations", "Notes & Visualizations"]
+      ]) line(href, text, "toc-back");
+
+      nav.append(toc);
+      invalidation.then(() => toc.remove());
+
+      // The entry being read is the last one (in page order) whose heading has
+      // reached the top of the window; the menu scrolls to keep its link in view
+      const entries = [...toc.querySelectorAll("[data-target]")];
+      let active = null;
+      function highlight() {
+        let current = null;
+        for (const a of entries) {
+          const heading = document.getElementById(a.dataset.target);
+          if (!heading) continue;
+          if (heading.getBoundingClientRect().top > 10) break;
+          current = a;
+        }
+        if (current === active) return;
+        active?.removeAttribute("aria-current");
+        active = current;
+        if (!active) return;
+        active.setAttribute("aria-current", "location");
+        const box = nav.getBoundingClientRect();
+        const top = box.top + nav.clientTop; // below the band kept for the toggle button
+        const row = active.getBoundingClientRect();
+        if (row.top < top || row.bottom > box.bottom) nav.scrollTop += row.top - top - (box.bottom - top) / 3;
+      }
+      const onScroll = () => requestAnimationFrame(highlight);
+      addEventListener("scroll", onScroll, { passive: true });
+      invalidation.then(() => removeEventListener("scroll", onScroll));
+      highlight();
+    }
+  </script>
   <script id="37" type="text/markdown">
     ---
 
     ## _Typhoon_
+  </script>
+  <script id="9843" type="text/markdown">
+    <h4 id="legend"><i>Legend</i></h4>
+
+    Phrases marked in the text are to be given special _attention_ by the model whenever it is in a corresponding beaufort state:
+    - **bold** (double-asterisk): storm-related phraseology,
+    - *italics* (single-asterisk): phraseology relating to crew members, especially Jukes, being stunned into inaction and ethical uncertainty by the storm,
+    - ***bold italics*** (triple-asterisk): phraseology relating to the plight/treatment of the Chinese workers.
+    - __double-underscore bold__: character-related phraseology related to beaufort scale
+
+    `bf` above each paragraph: its Beaufort rating, from 0 (calm) to 12 (hurricane force).
   </script>
   <script id="38" type="module">
     typhoon.c0 = {text: "I", start: 0, end: 58}
@@ -2342,7 +2429,7 @@
     ``)
   </script>
   <script id="522" type="module">
-    mkSec(display, 55, "Preparations on Deck", 423, 454, ["macwhirr", "jukes", "mate2", "helsman"], "MacWhirr comes back on deck with Jukes to prepare – mentally – for what is to come, discussing the fecklessness of the second mate, MacWhirr’s stolid insistence on fairness for the Chinese workers and his inability to countenance any of their fighting under his command (even if the ship had only “five minutes to live”), the reliability of Rout’s engine-room and all their strange anticipation floating amongst “the black hills of water.”")
+    mkSec(display, 55, "Preparations on Deck", 423, 454, ["macwhirr", "jukes", "mate2", "helmsman"], "MacWhirr comes back on deck with Jukes to prepare – mentally – for what is to come, discussing the fecklessness of the second mate, MacWhirr’s stolid insistence on fairness for the Chinese workers and his inability to countenance any of their fighting under his command (even if the ship had only “five minutes to live”), the reliability of Rout’s engine-room and all their strange anticipation floating amongst “the black hills of water.”")
   </script>
   <script id="523" type="module">
     mkCell(display,423,2,
@@ -2962,16 +3049,6 @@
     ---
     ## Notes & Visualizations &nbsp; [ꜛ](#contents)
   </script>
-  <script id="9843" type="module">
-    display(md`The code for this note contains a sample function that extracts anything marked as bold (with two asterisks) in a paragraph.
-
-    This is because these phrases are to be given special _attention_ by the model whenever it is in a corresponding beaufort state. Two other categories of phrases are also marked for similar purposes:
-    - **bold** (double-asterisk): storm-related phraseology,
-    - *italics* (single-asterisk): phraseology relating to crew members, especially Jukes, being stunned into inaction and ethical uncertainty by the storm,
-    - ***bold italics*** (triple-asterisk): phraseology relating to the plight/treatment of the Chinese workers.
-    - __double-underscore bold__ character-related phraseology related to beaufort scale
-    - [ so far unused: _single_ and ___triple___ underscore ]`)
-  </script>
   <script id="9892" type="module">
     // Shared constant: controls the speed divisor used by timeToRead() (cell 1960)
     // and by the ttrCache regeneration utility. Kept in its own cell so that
@@ -2991,25 +3068,40 @@
       return /^c\d+$/.test(key);
     }
 
+    await sectionsReady;
     const sections = Object.entries(typhoon)
       .filter(([key, value]) => isSectionKey(key) && value && typeof value === "object")
       .map(([key, value]) => ({ ...value, id: key }))
       .sort((a, b) => Number(a.id.slice(1)) - Number(b.id.slice(1)));
 
+    // The chapter entries (typhoon.c0, c1, …) are set by cells that can run after
+    // the sections, so wait until every section falls within one
+    {
+      const inChapter = (s) => Object.keys(typhoon).some((key) =>
+        isChapterKey(key) && s.start >= typhoon[key].start && s.start <= typhoon[key].end);
+      for (let i = 0; i < 100 && !sections.every(inChapter); i++) {
+        await new Promise((resolve) => setTimeout(resolve, 50));
+      }
+    }
+
     const chapters = Object.entries(typhoon)
       .filter(([key, value]) => isChapterKey(key) && value && typeof value === "object")
       .map(([key, value]) => ({ ...value, id: key }));
 
-    display(md`Extracted **${sections.length}** sections and **${chapters.length}** chapters from \`typhoon\`.`);
+    // display(md`Extracted **${sections.length}** sections and **${chapters.length}** chapters from \`typhoon\`.`);
   </script>
   <script id="9842" type="module">
-    // Button to trigger recalculation
-    const recalcBtn = display(html`<button style="margin-bottom: 0.75em; padding: 0.4em 1em; cursor: pointer;">
-      🔄 Recalculate table
-    </button>`);
+    const tableContainer = display(html`<div class="typhoon-table"></div>`);
+    const sTableContainer = display(html`<div class="typhoon-table"></div>`);
 
-    const tableContainer = display(html`<div></div>`);
-    const sTableContainer = display(html`<div></div>`);
+    // Table text wraps (narrow screens scroll the table sideways rather than
+    // squeeze its text columns), with each table's filters in a row above it
+    display(html`<style>
+      div.typhoon-table td { white-space: normal; vertical-align: top; }
+      div.typhoon-table table { min-width: 640px; }
+      div.typhoon-filters { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.25em 1.25em; margin-bottom: 0.75em; }
+      div.typhoon-filters > form { --label-width: auto; width: auto; }
+    </style>`);
 
     function formatTtr(ms) {
       const totalSec = Math.round(ms / 1000);
@@ -3022,7 +3114,68 @@
     // the lightweight extraction cell above — this cell only builds the debug
     // table/chart from `typhoon` (and reuses `sections`/`chapters` for display).
 
+    // Beaufort scale names, used in the bf filter menus and the chart tooltip
+    const beaufortNames = ["calm", "light air", "light breeze", "gentle breeze", "moderate breeze", "fresh breeze", "strong breeze", "near gale", "gale", "strong gale", "storm", "violent storm", "hurricane force"];
+
+    // Text without the markdown emphasis markers (*, **, ***, __)
+    function plainText(text) {
+      return String(text ?? "").replace(/[*_]+/g, "");
+    }
+
+    // The first `max` characters of the plain text, cut at a word boundary
+    function previewText(text, max = 160) {
+      const plain = plainText(text).trim();
+      if (plain.length <= max) return plain;
+      const cut = plain.lastIndexOf(" ", max);
+      return plain.slice(0, cut > 0 ? cut : max) + "…";
+    }
+
+    // Lowercased plain text with curly quotes straightened, so that searching
+    // for "macwhirr's" also finds “MacWhirr’s”
+    function searchText(...parts) {
+      return plainText(parts.join(" ")).toLowerCase()
+        .replace(/[\u2018\u2019]/g, "'")
+        .replace(/[\u201C\u201D]/g, '"');
+    }
+
+    function countWords(text) {
+      return String(text ?? "").trim().split(/\s+/).length;
+    }
+
+    // The chapter and section that each paragraph belongs to, from the
+    // start/end of the c- and s-prefixed entries
+    function paragraphLookups() {
+      const chapterOf = new Map();
+      const sectionOf = new Map();
+      for (const [key, value] of Object.entries(typhoon)) {
+        if (!value || typeof value !== "object" || value.start == null || value.end == null) continue;
+        const lookup = isChapterKey(key) ? chapterOf : isSectionKey(key) ? sectionOf : null;
+        if (!lookup) continue;
+        for (let p = value.start; p <= value.end; p++) lookup.set(p, { ...value, key });
+      }
+      return { chapterOf, sectionOf };
+    }
+
+    // Totals over a chapter's or section's paragraphs (words, ttr, bf range,
+    // actors), so that those rows can be shown and filtered like paragraphs
+    function spanTotals(start, end, sectionOf) {
+      const totals = { words: 0, ttr: 0, bfMin: null, bfMax: null, actors: new Set() };
+      for (let p = start; p <= end; p++) {
+        const para = getParagraph(typhoon, p);
+        if (!para) continue;
+        totals.words += countWords(para.text);
+        totals.ttr += ttrCache[paragraphKey(p)] ?? 0;
+        if (para.bf != null) {
+          totals.bfMin = Math.min(totals.bfMin ?? para.bf, para.bf);
+          totals.bfMax = Math.max(totals.bfMax ?? para.bf, para.bf);
+        }
+        for (const actor of sectionOf.get(p)?.actors ?? []) totals.actors.add(actor);
+      }
+      return totals;
+    }
+
     function buildTable() {
+      const { chapterOf, sectionOf } = paragraphLookups();
       const entries = [];
       for (const [key, value] of Object.entries(typhoon)) {
         if (!value || typeof value !== "object") continue;
@@ -3039,48 +3192,75 @@
         }
 
         let wordCount = null;
-        let ttrFmt = null;
+        let ttr = null;
         let preview = "";
         let desc = null;
-        let span = null;
+        let start = null;
+        let end = null;
+        let bf = value.bf ?? null;
+        let bfMin = bf;
+        let pos = null; // paragraph number where the entry begins, for reading order
+        let rowActors = [];
+        let search = "";
 
         if (type === "paragraph") {
           const text = value.text ?? "";
-          wordCount = text.trim().split(/\s+/).length;
+          wordCount = countWords(text);
           // ttr is precomputed (see the `ttrCache` cell in Utilities) — no
           // recalculation happens here, we just look the value up.
-          const ttr = ttrCache[key];
-          ttrFmt = ttr != null ? formatTtr(ttr) : "—";
-          preview = text.slice(0, 80).replace(/\*\*/g, "") + (text.length > 80 ? "…" : "");
+          ttr = ttrCache[key] ?? null;
+          preview = previewText(text);
+          pos = paragraphNumberFromKey(key);
+          rowActors = sectionOf.get(pos)?.actors ?? [];
+          search = searchText(text);
         } else if (type === "chapter") {
           const text = value.text ?? "";
           preview = text.slice(0, 80);
-          const start = value.start;
-          const end = value.end;
-          if (start != null && end != null) span = `${start}–${end}`;
+          search = searchText(text);
         } else if (type === "section") {
           desc = value.desc ?? null;
-          const start = value.start;
-          const end = value.end;
-          if (start != null && end != null) span = `${start}–${end}`;
           preview = desc ?? "";
+          search = searchText(desc, value._sentence, (value.actors ?? []).join(" "));
+        }
+
+        // Chapters and sections get their paragraph range, plus totals over those
+        // paragraphs in the words, bf (as a min–max range), and ttr columns
+        if ((type === "chapter" || type === "section") && value.start != null && value.end != null) {
+          start = pos = value.start;
+          end = value.end;
+          const totals = spanTotals(start, end, sectionOf);
+          wordCount = totals.words;
+          ttr = totals.ttr;
+          bf = totals.bfMax;
+          bfMin = totals.bfMin;
+          rowActors = type === "section" ? (value.actors ?? []) : [...totals.actors];
         }
 
         entries.push({
           key,
           type,
+          chapter: chapterOf.get(pos)?.text ?? null,
           wordCount,
-          bf: value.bf ?? null,
-          ttr: ttrFmt,
-          span,
+          bf,
+          bfMin,
+          ttr,
+          start,
+          end,
           desc,
-          preview
+          preview,
+          pos,
+          actors: rowActors,
+          search
         });
       }
-      return entries;
+      // Reading order: each chapter, then each of its sections followed by that
+      // section's paragraphs
+      const rank = { chapter: 0, section: 1, paragraph: 2, other: 3 };
+      return entries.sort((a, b) => ((a.pos ?? Infinity) - (b.pos ?? Infinity)) || (rank[a.type] - rank[b.type]));
     }
 
     function buildSTable() {
+      const { chapterOf, sectionOf } = paragraphLookups();
       const sEntries = [];
       for (const [key, value] of Object.entries(typhoon)) {
         if (!/^s/i.test(key)) continue;
@@ -3088,71 +3268,179 @@
 
         const start = value.start;
         const end = value.end;
+        const sectionActors = Array.isArray(value.actors) ? value.actors : [];
+        const totals = (start != null && end != null) ? spanTotals(start, end, sectionOf) : {};
 
         sEntries.push({
           key,
+          chapter: chapterOf.get(start)?.text ?? null,
+          start: start ?? null,
+          end: end ?? null,
+          bf: totals.bfMax ?? null,
+          bfMin: totals.bfMin ?? null,
           desc: value.desc ?? null,
-          span: (start != null && end != null) ? `${start}–${end}` : null,
-          actors: Array.isArray(value.actors)
-            ? value.actors.join(", ")
-            : null,
-          sentence: value._sentence ?? null
+          actors: sectionActors,
+          sentence: value._sentence ?? null,
+          search: searchText(value.desc, value._sentence, sectionActors.join(" "))
         });
       }
       return sEntries.sort((a, b) => a.key.localeCompare(b.key, undefined, { numeric: true }));
     }
 
-    function render() {
-      const entries = buildTable();
-      const sEntries = buildSTable();
-      const chapterCount = entries.filter(e => e.type === "chapter").length;
-      const sectionCount = entries.filter(e => e.type === "section").length;
-      const paraCount    = entries.filter(e => e.type === "paragraph").length;
+    // Filter controls for a table. Changing any of them calls `onChange`; the
+    // current choices are read from the returned element's `value`.
+    function filterControls(onChange, { withType = false } = {}) {
+      const chapterNames = Object.keys(typhoon).filter(isChapterKey)
+        .sort((a, b) => Number(a.slice(1)) - Number(b.slice(1)))
+        .map((key) => typhoon[key].text);
+      // Actors in the order of the `actors` object (see Utilities), then any
+      // other names that appear in the sections' actor lists
+      const used = new Set(Object.keys(typhoon).filter(isSectionKey).flatMap((key) => typhoon[key].actors ?? []));
+      const actorNames = [...Object.keys(actors).filter((a) => used.has(a)), ...[...used].filter((a) => !(a in actors)).sort()];
+      const levels = beaufortNames.map((_, i) => i);
+      const levelName = (i) => `${i} · ${beaufortNames[i]}`;
+      const orAll = (d) => d ?? "all";
+      const inputs = {
+        type: withType ? Inputs.select([null, "chapter", "section", "paragraph"], { label: "Type", format: orAll }) : null,
+        chapter: Inputs.select([null, ...chapterNames], { label: "Chapter", format: orAll }),
+        actor: Inputs.select([null, ...actorNames], { label: "Actor", format: orAll }),
+        bfFrom: Inputs.select(levels, { label: "bf from", value: 0, format: levelName }),
+        bfTo: Inputs.select(levels, { label: "to", value: levels.at(-1), format: levelName }),
+        search: Inputs.text({ label: "Search", type: "search", placeholder: "e.g. barometer" })
+      };
+      const reset = html`<button type="button" style="cursor: pointer;">reset</button>`;
+      reset.addEventListener("click", () => {
+        if (inputs.type) inputs.type.value = null;
+        inputs.chapter.value = null;
+        inputs.actor.value = null;
+        inputs.bfFrom.value = 0;
+        inputs.bfTo.value = levels.at(-1);
+        inputs.search.value = "";
+        onChange();
+      });
+      const controls = Object.values(inputs).filter(Boolean);
+      for (const input of controls) input.addEventListener("input", onChange);
+      const bar = html`<div class="typhoon-filters">${controls}${reset}</div>`;
+      Object.defineProperty(bar, "value", {
+        get: () => ({
+          type: inputs.type?.value ?? null,
+          chapter: inputs.chapter.value,
+          actor: inputs.actor.value,
+          bfFrom: inputs.bfFrom.value,
+          bfTo: inputs.bfTo.value,
+          terms: searchText(inputs.search.value).split(/\s+/).filter(Boolean)
+        })
+      });
+      return bar;
+    }
 
-      tableContainer.innerHTML = "";
-      tableContainer.append(
-        html`<p>
-          <strong>${entries.length} entries</strong> found in <code>typhoon</code>:
-          <strong>${chapterCount}</strong> chapters,
-          <strong>${sectionCount}</strong> sections,
-          <strong>${paraCount}</strong> paragraphs
-        </p>`
-      );
-      tableContainer.append(Inputs.table(entries, {
-        columns: ["key", "type", "span", "wordCount", "bf", "ttr", "preview"],
+    // Whether a row passes the filters: each chosen value must match, the row's
+    // bf (or bf range) must overlap the chosen range, and every search word must
+    // occur in the row's text
+    function rowMatches(row, filters) {
+      if (filters.type && row.type !== filters.type) return false;
+      if (filters.chapter && row.chapter !== filters.chapter) return false;
+      if (filters.actor && !row.actors.includes(filters.actor)) return false;
+      const lo = Math.min(filters.bfFrom, filters.bfTo);
+      const hi = Math.max(filters.bfFrom, filters.bfTo);
+      if ((lo > 0 || hi < beaufortNames.length - 1) && (row.bf == null || row.bf < lo || row.bfMin > hi)) return false;
+      return filters.terms.every((term) => row.search.includes(term));
+    }
+
+    // Column formats shared by both tables: the key links to that entry in the
+    // text, paragraph ranges show as start–end, and so do bf ranges
+    function keyLink(key, i, rows) {
+      const type = rows[i].type;
+      const id = type === "paragraph" ? `p${paragraphNumberFromKey(key)}`
+        : type === "chapter" ? String(typhoon[key].text).toLowerCase()
+        : key;
+      return html`<a href="#${id}">${key}</a>`;
+    }
+    const spanText = (start, i, rows) => `${start}–${rows[i].end}`;
+    const bfText = (bf, i, rows) => rows[i].bfMin != null && rows[i].bfMin !== bf ? `${rows[i].bfMin}–${bf}` : `${bf}`;
+
+    // A summary line, filter controls, and table inside `container`. Returns a
+    // function that shows the table for a (new) set of rows. The controls are
+    // kept across re-renders, so typing in a search box keeps its focus.
+    function filterableTable(container, { withType = false, summary, options }) {
+      const head = html`<div></div>`;
+      const slot = html`<div></div>`;
+      let rows = [];
+      const filters = filterControls(() => show(rows), { withType });
+      container.append(head, filters, slot);
+      function show(newRows) {
+        rows = newRows;
+        const shown = rows.filter((row) => rowMatches(row, filters.value));
+        head.replaceChildren(summary(rows, shown));
+        slot.replaceChildren(Inputs.table(shown, options(shown)));
+      }
+      return show;
+    }
+
+    // Added to a summary line when the filters hide some of the rows
+    const shownNote = (rows, shown) => shown.length < rows.length
+      ? html` — <strong>${shown.length}</strong> shown with the filters below`
+      : "";
+
+    const showTable = filterableTable(tableContainer, {
+      withType: true,
+      summary: (entries, shown) => html`<p>
+        <strong>${entries.length} entries</strong>:
+        <strong>${entries.filter(e => e.type === "chapter").length}</strong> chapters,
+        <strong>${entries.filter(e => e.type === "section").length}</strong> sections,
+        <strong>${entries.filter(e => e.type === "paragraph").length}</strong> paragraphs${shownNote(entries, shown)}
+      </p>`,
+      options: () => ({
+        columns: ["key", "type", "chapter", "start", "wordCount", "bf", "ttr", "preview"],
         header: {
           key: "key",
           type: "type",
-          span: "paragraphs",
+          chapter: "ch.",
+          start: "paragraphs",
           wordCount: "words",
           bf: "bf",
           ttr: "ttr",
           preview: "preview / description"
-        }
-      }));
+        },
+        format: { key: keyLink, start: spanText, bf: bfText, ttr: formatTtr },
+        align: { start: "left" },
+        width: { key: 48, type: 72, chapter: 34, start: 80, wordCount: 56, bf: 44, ttr: 48 },
+        rows: 20, // rows load in batches of this many as the box below is scrolled
+        maxHeight: 520
+      })
+    });
 
-      sTableContainer.innerHTML = "";
-      sTableContainer.append(
-        html`<p>
-          <strong>${sEntries.length} entries</strong> found <code>s</code>-prefixed keys for sections
-        </p>`
-      );
-      sTableContainer.append(Inputs.table(sEntries, {
-        columns: ["key", "span", "desc", "actors", "sentence"],
+    const showSTable = filterableTable(sTableContainer, {
+      summary: (sEntries, shown) => html`<p>
+        <strong>${sEntries.length}</strong> sections${shownNote(sEntries, shown)}
+      </p>`,
+      options: (shown) => ({
+        columns: ["key", "chapter", "start", "bf", "desc", "actors", "sentence"],
         header: {
           key: "key",
-          span: "paragraphs",
+          chapter: "ch.",
+          start: "paragraphs",
+          bf: "bf",
           desc: "description",
           actors: "actors",
           sentence: "sentence"
-        }
-      }));
+        },
+        format: { key: keyLink, start: spanText, bf: bfText, actors: (list) => list.join(", ") },
+        align: { start: "left" },
+        width: { key: 40, chapter: 34, start: 80, bf: 44, desc: 170, actors: 130 },
+        rows: Math.max(shown.length, 1), // all sections at once, scrolled within the box
+        maxHeight: 640
+      })
+    });
+
+    function render() {
+      showTable(buildTable());
+      showSTable(buildSTable());
     }
 
-    recalcBtn.addEventListener("click", render);
     render();
 
-    // xy chart — redraws when recalcBtn is clicked
+    // xy chart
     const xyChart = (() => {
       const container = display(html`<div></div>`);
 
@@ -3160,26 +3448,27 @@
         const entries = [];
         for (const { key, value } of paragraphEntries(typhoon)) {
           const ttr = ttrCache[key];
-          entries.push({ key, ttr, bf: value.bf ?? null });
+          entries.push({ key, ttr, bf: value.bf ?? null, text: value.text ?? "" });
         }
         return entries;
       }
 
-      function buildSectionStartMarkers(paragraphStartXByNumber) {
+      function buildStartMarkers(paragraphStartXByNumber, isKey) {
         const markers = [];
         for (const [key, value] of Object.entries(typhoon)) {
-          if (!/^s/.test(key) || !value || typeof value !== "object") continue;
+          if (!isKey(key) || !value || typeof value !== "object") continue;
           const start = Number(value.start);
           if (!Number.isFinite(start)) continue;
           const x = paragraphStartXByNumber.get(start);
           if (x === undefined) continue;
-          markers.push({ key, start, x });
+          markers.push({ key, start, x, label: value.text ?? key });
         }
         return markers.sort((a, b) => a.start - b.start);
       }
 
       function draw() {
         const data = buildData();
+        const { chapterOf, sectionOf } = paragraphLookups();
 
         let cumulative = 0;
         const paragraphStartXByNumber = new Map();
@@ -3187,11 +3476,12 @@
         for (const d of data) {
           paragraphStartXByNumber.set(paragraphNumberFromKey(d.key), cumulative);
           cumulative += d.ttr;
-          allPoints.push({ x: cumulative, bf: d.bf, key: d.key });
+          allPoints.push({ x: cumulative, bf: d.bf, key: d.key, text: d.text });
         }
 
         const bfPoints = allPoints.filter(d => d.bf !== null);
-        const sectionStartMarkers = buildSectionStartMarkers(paragraphStartXByNumber);
+        const sectionStartMarkers = buildStartMarkers(paragraphStartXByNumber, isSectionKey);
+        const chapterStartMarkers = buildStartMarkers(paragraphStartXByNumber, isChapterKey);
 
         const totalMs = cumulative;
 
@@ -3200,6 +3490,19 @@
           const m = Math.floor(s / 60);
           const sec = s % 60;
           return `${m}:${String(sec).padStart(2, "0")}`;
+        }
+
+        // Tooltip for each point: paragraph, bf, chapter and section, and the
+        // opening of the passage
+        function tipText(d) {
+          const pnum = paragraphNumberFromKey(d.key);
+          const chapter = chapterOf.get(pnum);
+          const section = sectionOf.get(pnum);
+          return [
+            `¶ ${d.key} · bf ${d.bf} (${beaufortNames[d.bf] ?? "?"}) · ${fmtMs(d.x)}`,
+            section ? `${chapter ? `${chapter.text} · ` : ""}${section.key}: ${plainText(section.desc)}` : null,
+            previewText(d.text, 140)
+          ].filter(Boolean).join("\n");
         }
 
         const plot = Plot.plot({
@@ -3229,14 +3532,23 @@
               strokeDasharray: "2,3",
               strokeWidth: 1
             }),
-            Plot.text(sectionStartMarkers, {
+            // Only chapter starts (I–VI) are labelled; the tooltip names the section
+            Plot.ruleX(chapterStartMarkers, {
               x: "x",
-              y: (_d, i) => 11.6 - (i % 3) * 0.45,
-              text: "key",
+              stroke: "#999",
+              strokeWidth: 1
+            }),
+            Plot.text(chapterStartMarkers, {
+              x: "x",
+              y: 12,
+              text: "label",
               textAnchor: "start",
-              dx: 2,
+              lineAnchor: "bottom",
+              dx: 3,
+              dy: -4,
               fill: "#666",
-              fontSize: 10
+              fontSize: 11,
+              fontWeight: "bold"
             }),
             Plot.line(bfPoints, {
               x: "x",
@@ -3250,8 +3562,8 @@
               y: "bf",
               fill: "steelblue",
               r: 1.5,
-              tip: true,
-              title: (d) => `${d.key}  bf: ${d.bf}\n${fmtMs(d.x)}`
+              tip: { lineWidth: 30 },
+              title: tipText
             }),
             Plot.ruleX([bfPoints.at(-1)?.x ?? 0], {
               stroke: "#e07",
@@ -3267,14 +3579,10 @@
 
       draw();
 
-      recalcBtn.addEventListener("click", () => {
-        setTimeout(draw, 50);
-      });
-
       return { draw, container };
     })();
 
-  </script>
+</script>
   <script id="1954" type="text/markdown" hidden="">
     ---
     ## Utilities &nbsp; [ꜛ](#contents)
@@ -3496,6 +3804,34 @@
       }
       .para {
         margin-bottom: 1em;
+      }
+      #toc .toc-contents {
+        padding: 0.9rem 0 1.5rem 28px;
+        border-top: 1px solid #ddd;
+        font-size: 85%;
+        line-height: 1.35;
+      }
+      #toc .toc-contents p {
+        margin-bottom: 0.35em;
+      }
+      #toc .toc-heading,
+      #toc .toc-chapter {
+        font-weight: 700;
+      }
+      #toc .toc-chapter,
+      #toc .toc-contents ol + .toc-back {
+        padding-top: 0.5em;
+      }
+      #toc .toc-contents ol {
+        padding-left: 0.8em;
+        list-style: none;
+      }
+      #toc .toc-contents li {
+        margin-bottom: 0.3em;
+      }
+      #toc .toc-contents a[aria-current] {
+        font-weight: 700;
+        color: var(--theme-foreground);
       }
     </style>
   </script>
