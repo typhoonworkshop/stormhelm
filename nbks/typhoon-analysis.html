@@ -36,7 +36,7 @@
     - [Notes & Visualizations](#notes-and-visualizations)
     `)
   </script>
-  <script id="9893" type="module">
+  <script id="99001" type="module">
     // Contents in the site menu, with the section being read highlighted
     {
       const nav = document.getElementById("toc");
@@ -2878,7 +2878,7 @@
     ``)
   </script>
   <script id="615" type="module">
-    mkSec(display, 65, "Juke's Account", 506, 515, ["jukes", "workers", "macwhirr", "rout"], "Juke’s account, written to a friend in the trade, is “animated and very full,” describing how, despite Juke’s somewhat colonialist prejudicial opinions and fears, Captain MacWhirr insisted on a making a fair redistribution of the silver that they had effectively confiscated from the Chinese workers, doing this quietly, and before arriving a port or involving any authorities.")
+    mkSec(display, 65, "Jukes’ Account", 506, 515, ["jukes", "workers", "macwhirr", "rout"], "Juke’s account, written to a friend in the trade, is “animated and very full,” describing how, despite Juke’s somewhat colonialist prejudicial opinions and fears, Captain MacWhirr insisted on a making a fair redistribution of the silver that they had effectively confiscated from the Chinese workers, doing this quietly, and before arriving a port or involving any authorities.")
   </script>
   <script id="616" type="module">
     mkCell(display,506,4,
@@ -3049,13 +3049,6 @@
     ---
     ## Notes & Visualizations &nbsp; [ꜛ](#contents)
   </script>
-  <script id="9892" type="module">
-    // Shared constant: controls the speed divisor used by timeToRead() (cell 1960)
-    // and by the ttrCache regeneration utility. Kept in its own cell so that
-    // nothing which *uses* timeToRead (directly or indirectly) also *defines*
-    // this value
-    const TIME_FACTOR = 1;
-  </script>
   <script id="9888" type="module">
     // Lightweight extraction of `sections`/`chapters` from `typhoon`, kept
     // separate from the heavy debug table/chart cell below so that cells which
@@ -3091,30 +3084,30 @@
     // display(md`Extracted **${sections.length}** sections and **${chapters.length}** chapters from \`typhoon\`.`);
   </script>
   <script id="9842" type="module">
-    const tableContainer = display(html`<div class="typhoon-table"></div>`);
-    const sTableContainer = display(html`<div class="typhoon-table"></div>`);
+    const chartContainer = display(html`<div class="typhoon-chart">
+      <h4><i>‘Beaufort Scale’ along Time to Read</i></h4>
+    </div>`);
+    const tableContainer = display(html`<div class="typhoon-table">
+      <h4><i>Chapters, sections and paragraphs</i></h4>
+    </div>`);
+    const sTableContainer = display(html`<div class="typhoon-table">
+      <h4><i>Sections</i></h4>
+    </div>`);
 
-    // Table text wraps (narrow screens scroll the table sideways rather than
-    // squeeze its text columns), with each table's filters in a row above it
-    display(html`<style>
-      div.typhoon-table td { white-space: normal; vertical-align: top; }
-      div.typhoon-table table { min-width: 640px; }
-      div.typhoon-filters { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.25em 1.25em; margin-bottom: 0.75em; }
-      div.typhoon-filters > form { --label-width: auto; width: auto; }
-    </style>`);
-
+    // Reading times as m:ss, or as h:mm:ss from an hour up
     function formatTtr(ms) {
       const totalSec = Math.round(ms / 1000);
-      const mins = Math.floor(totalSec / 60);
-      const secs = totalSec % 60;
-      return `${mins}:${String(secs).padStart(2, "0")}`;
+      const hours = Math.floor(totalSec / 3600);
+      const mins = Math.floor(totalSec / 60) % 60;
+      const secs = String(totalSec % 60).padStart(2, "0");
+      return hours ? `${hours}:${String(mins).padStart(2, "0")}:${secs}` : `${mins}:${secs}`;
     }
 
     // NOTE: `sections`, `chapters`, `isSectionKey`, `isChapterKey` now come from
     // the lightweight extraction cell above — this cell only builds the debug
     // table/chart from `typhoon` (and reuses `sections`/`chapters` for display).
 
-    // Beaufort scale names, used in the bf filter menus and the chart tooltip
+    // Beaufort scale names, used in the bf filter menus and the chart
     const beaufortNames = ["calm", "light air", "light breeze", "gentle breeze", "moderate breeze", "fresh breeze", "strong breeze", "near gale", "gale", "strong gale", "storm", "violent storm", "hurricane force"];
 
     // Text without the markdown emphasis markers (*, **, ***, __)
@@ -3122,20 +3115,12 @@
       return String(text ?? "").replace(/[*_]+/g, "");
     }
 
-    // The first `max` characters of the plain text, cut at a word boundary
-    function previewText(text, max = 160) {
-      const plain = plainText(text).trim();
-      if (plain.length <= max) return plain;
-      const cut = plain.lastIndexOf(" ", max);
-      return plain.slice(0, cut > 0 ? cut : max) + "…";
-    }
-
     // Lowercased plain text with curly quotes straightened, so that searching
     // for "macwhirr's" also finds “MacWhirr’s”
     function searchText(...parts) {
       return plainText(parts.join(" ")).toLowerCase()
-        .replace(/[\u2018\u2019]/g, "'")
-        .replace(/[\u201C\u201D]/g, '"');
+        .replace(/[‘’]/g, "'")
+        .replace(/[“”]/g, '"');
     }
 
     function countWords(text) {
@@ -3193,7 +3178,7 @@
 
         let wordCount = null;
         let ttr = null;
-        let preview = "";
+        let text = "";
         let desc = null;
         let start = null;
         let end = null;
@@ -3204,22 +3189,21 @@
         let search = "";
 
         if (type === "paragraph") {
-          const text = value.text ?? "";
-          wordCount = countWords(text);
+          const raw = value.text ?? "";
+          wordCount = countWords(raw);
           // ttr is precomputed (see the `ttrCache` cell in Utilities) — no
           // recalculation happens here, we just look the value up.
           ttr = ttrCache[key] ?? null;
-          preview = previewText(text);
+          text = plainText(raw).trim();
           pos = paragraphNumberFromKey(key);
           rowActors = sectionOf.get(pos)?.actors ?? [];
-          search = searchText(text);
+          search = searchText(raw);
         } else if (type === "chapter") {
-          const text = value.text ?? "";
-          preview = text.slice(0, 80);
-          search = searchText(text);
+          text = `Chapter ${value.text ?? ""}`;
+          search = searchText(value.text ?? "");
         } else if (type === "section") {
           desc = value.desc ?? null;
-          preview = desc ?? "";
+          text = desc ?? "";
           search = searchText(desc, value._sentence, (value.actors ?? []).join(" "));
         }
 
@@ -3247,7 +3231,7 @@
           start,
           end,
           desc,
-          preview,
+          text,
           pos,
           actors: rowActors,
           search
@@ -3304,22 +3288,13 @@
         type: withType ? Inputs.select([null, "chapter", "section", "paragraph"], { label: "Type", format: orAll }) : null,
         chapter: Inputs.select([null, ...chapterNames], { label: "Chapter", format: orAll }),
         actor: Inputs.select([null, ...actorNames], { label: "Actor", format: orAll }),
-        bfFrom: Inputs.select(levels, { label: "bf from", value: 0, format: levelName }),
+        bfFrom: Inputs.select(levels, { label: "Beaufort", value: 0, format: levelName }),
         bfTo: Inputs.select(levels, { label: "to", value: levels.at(-1), format: levelName }),
         search: Inputs.text({ label: "Search", type: "search", placeholder: "e.g. barometer" })
       };
-      const reset = html`<button type="button" style="cursor: pointer;">reset</button>`;
-      reset.addEventListener("click", () => {
-        if (inputs.type) inputs.type.value = null;
-        inputs.chapter.value = null;
-        inputs.actor.value = null;
-        inputs.bfFrom.value = 0;
-        inputs.bfTo.value = levels.at(-1);
-        inputs.search.value = "";
-        onChange();
-      });
+      inputs.search.classList.add("typhoon-search");
+      const reset = html`<button type="button" class="typhoon-reset" disabled>Reset</button>`;
       const controls = Object.values(inputs).filter(Boolean);
-      for (const input of controls) input.addEventListener("input", onChange);
       const bar = html`<div class="typhoon-filters">${controls}${reset}</div>`;
       Object.defineProperty(bar, "value", {
         get: () => ({
@@ -3330,6 +3305,22 @@
           bfTo: inputs.bfTo.value,
           terms: searchText(inputs.search.value).split(/\s+/).filter(Boolean)
         })
+      });
+      // Reset is only offered while some filter is set
+      function update() {
+        const { type, chapter, actor, bfFrom, bfTo, terms } = bar.value;
+        reset.disabled = !type && !chapter && !actor && bfFrom === 0 && bfTo === levels.at(-1) && !terms.length;
+        onChange();
+      }
+      for (const input of controls) input.addEventListener("input", update);
+      reset.addEventListener("click", () => {
+        if (inputs.type) inputs.type.value = null;
+        inputs.chapter.value = null;
+        inputs.actor.value = null;
+        inputs.bfFrom.value = 0;
+        inputs.bfTo.value = levels.at(-1);
+        inputs.search.value = "";
+        update();
       });
       return bar;
     }
@@ -3348,50 +3339,74 @@
     }
 
     // Column formats shared by both tables: the key links to that entry in the
-    // text, paragraph ranges show as start–end, and so do bf ranges
+    // text (and carries its type, which styles chapter and section rows),
+    // paragraph ranges show as start–end, and so do bf ranges
     function keyLink(key, i, rows) {
       const type = rows[i].type;
       const id = type === "paragraph" ? `p${paragraphNumberFromKey(key)}`
         : type === "chapter" ? String(typhoon[key].text).toLowerCase()
         : key;
-      return html`<a href="#${id}">${key}</a>`;
+      return html`<a href="#${id}" data-type=${type}>${key}</a>`;
     }
     const spanText = (start, i, rows) => `${start}–${rows[i].end}`;
     const bfText = (bf, i, rows) => rows[i].bfMin != null && rows[i].bfMin !== bf ? `${rows[i].bfMin}–${bf}` : `${bf}`;
+    // Prose (paragraphs, section descriptions and sentences) is set in the text
+    // face, and a paragraph shows three lines until it is selected
+    const prose = (text) => html`<span class="typhoon-prose">${text}</span>`;
+    const textCell = (text, i, rows) => rows[i].type === "paragraph"
+      ? html`<details class="typhoon-more"><summary>${prose(text)}</summary></details>`
+      : prose(text);
 
-    // A summary line, filter controls, and table inside `container`. Returns a
-    // function that shows the table for a (new) set of rows. The controls are
-    // kept across re-renders, so typing in a search box keeps its focus.
+    // A line about the table, its filter controls and the table itself, inside
+    // `container`. Returns a function that shows the table for a (new) set of
+    // rows. The controls are kept across re-renders, so typing in a search box
+    // keeps its focus. The table's columns depend on the width it has: "wide"
+    // from 880px, "medium" from 600px, and "narrow" below that.
     function filterableTable(container, { withType = false, summary, options }) {
       const head = html`<div></div>`;
       const slot = html`<div></div>`;
       let rows = [];
       const filters = filterControls(() => show(rows), { withType });
-      container.append(head, filters, slot);
+      container.append(head, html`<div class="typhoon-panel">${filters}${slot}</div>`);
+      const sizeNow = () => {
+        const width = container.clientWidth;
+        return width < 600 ? "narrow" : width < 880 ? "medium" : "wide";
+      };
+      let size = sizeNow();
       function show(newRows) {
         rows = newRows;
         const shown = rows.filter((row) => rowMatches(row, filters.value));
         head.replaceChildren(summary(rows, shown));
-        slot.replaceChildren(Inputs.table(shown, options(shown)));
+        slot.replaceChildren(Inputs.table(shown, options(shown, size)));
       }
+      const observer = new ResizeObserver(() => {
+        if (sizeNow() === size) return;
+        size = sizeNow();
+        show(rows);
+      });
+      observer.observe(container);
+      invalidation.then(() => observer.disconnect());
       return show;
     }
 
-    // Added to a summary line when the filters hide some of the rows
-    const shownNote = (rows, shown) => shown.length < rows.length
-      ? html` — <strong>${shown.length}</strong> shown with the filters below`
-      : "";
+    // Starts a summary line once the filters hide some of the rows
+    const matchNote = (rows, shown, noun) => html`<strong>${shown.length}</strong> of ${rows.length} ${noun} match the filters.`;
 
     const showTable = filterableTable(tableContainer, {
       withType: true,
-      summary: (entries, shown) => html`<p>
-        <strong>${entries.length} entries</strong>:
-        <strong>${entries.filter(e => e.type === "chapter").length}</strong> chapters,
-        <strong>${entries.filter(e => e.type === "section").length}</strong> sections,
-        <strong>${entries.filter(e => e.type === "paragraph").length}</strong> paragraphs${shownNote(entries, shown)}
-      </p>`,
-      options: () => ({
-        columns: ["key", "type", "chapter", "start", "wordCount", "bf", "ttr", "preview"],
+      summary: (entries, shown) => {
+        const count = (type) => entries.filter((e) => e.type === type).length;
+        return html`<p class="typhoon-caption">
+          ${shown.length < entries.length ? matchNote(entries, shown, "entries") : html`<strong>${entries.length}</strong> entries in reading order: ${count("chapter")} chapters, ${count("section")} sections and ${count("paragraph")} paragraphs.`}
+          Select a key to go to it in the text, a column heading to sort, or a paragraph to read all of it.
+        </p>`;
+      },
+      options: (shown, size) => ({
+        columns: {
+          wide: ["key", "type", "chapter", "start", "wordCount", "bf", "ttr", "text"],
+          medium: ["key", "chapter", "bf", "ttr", "text"],
+          narrow: ["key", "bf", "text"]
+        }[size],
         header: {
           key: "key",
           type: "type",
@@ -3399,23 +3414,29 @@
           start: "paragraphs",
           wordCount: "words",
           bf: "bf",
-          ttr: "ttr",
-          preview: "preview / description"
+          ttr: "time to read",
+          text: "text"
         },
-        format: { key: keyLink, start: spanText, bf: bfText, ttr: formatTtr },
+        format: { key: keyLink, start: spanText, bf: bfText, ttr: formatTtr, text: textCell },
         align: { start: "left" },
-        width: { key: 48, type: 72, chapter: 34, start: 80, wordCount: 56, bf: 44, ttr: 48 },
-        rows: 20, // rows load in batches of this many as the box below is scrolled
-        maxHeight: 520
+        width: { key: 56, type: 88, chapter: 44, start: 92, wordCount: 68, bf: 64, ttr: 104 },
+        select: false,
+        rows: 30, // rows load in batches of this many as the box below is scrolled
+        maxHeight: "min(70vh, 640px)"
       })
     });
 
     const showSTable = filterableTable(sTableContainer, {
-      summary: (sEntries, shown) => html`<p>
-        <strong>${sEntries.length}</strong> sections${shownNote(sEntries, shown)}
+      summary: (sEntries, shown) => html`<p class="typhoon-caption">
+        ${shown.length < sEntries.length ? matchNote(sEntries, shown, "sections") : html`<strong>${sEntries.length}</strong> sections, each with its actors and its sentence in the Synopsis.`}
+        Select a key to go to it in the text, or a column heading to sort.
       </p>`,
-      options: (shown) => ({
-        columns: ["key", "chapter", "start", "bf", "desc", "actors", "sentence"],
+      options: (shown, size) => ({
+        columns: {
+          wide: ["key", "chapter", "start", "bf", "desc", "actors", "sentence"],
+          medium: ["key", "chapter", "bf", "desc", "sentence"],
+          narrow: ["key", "desc", "sentence"]
+        }[size],
         header: {
           key: "key",
           chapter: "ch.",
@@ -3425,11 +3446,12 @@
           actors: "actors",
           sentence: "sentence"
         },
-        format: { key: keyLink, start: spanText, bf: bfText, actors: (list) => list.join(", ") },
+        format: { key: keyLink, start: spanText, bf: bfText, desc: prose, actors: (list) => list.join(", "), sentence: prose },
         align: { start: "left" },
-        width: { key: 40, chapter: 34, start: 80, bf: 44, desc: 170, actors: 130 },
+        width: { key: 56, chapter: 44, start: 92, bf: 64, desc: size === "narrow" ? "36%" : 172, actors: 132 },
+        select: false,
         rows: Math.max(shown.length, 1), // all sections at once, scrolled within the box
-        maxHeight: 640
+        maxHeight: "min(70vh, 640px)"
       })
     });
 
@@ -3440,104 +3462,119 @@
 
     render();
 
-    // xy chart
+    // xy chart: ‘Beaufort Scale’ along Time to Read, drawn to the width of the
+    // page and redrawn when that changes, with the paragraph pointed at shown in
+    // full below it
     const xyChart = (() => {
-      const container = display(html`<div></div>`);
+      const caption = html`<p class="typhoon-caption"></p>`;
+      const container = html`<div></div>`;
+      const reader = html`<div class="typhoon-reader">
+        <p class="typhoon-reader-head">Hover over a point in the chart to read its paragraph here.</p>
+      </div>`;
+      chartContainer.append(caption, container, reader);
 
+      // Each paragraph spans its own stretch of the reading time
       function buildData() {
         const entries = [];
+        let elapsed = 0;
         for (const { key, value } of paragraphEntries(typhoon)) {
-          const ttr = ttrCache[key];
-          entries.push({ key, ttr, bf: value.bf ?? null, text: value.text ?? "" });
+          const start = elapsed;
+          elapsed += ttrCache[key] ?? 0;
+          entries.push({ key, start, end: elapsed, mid: (start + elapsed) / 2, bf: value.bf ?? null, text: value.text ?? "" });
         }
         return entries;
       }
 
-      function buildStartMarkers(paragraphStartXByNumber, isKey) {
+      function buildStartMarkers(paragraphStartByNumber, isKey) {
         const markers = [];
         for (const [key, value] of Object.entries(typhoon)) {
           if (!isKey(key) || !value || typeof value !== "object") continue;
           const start = Number(value.start);
           if (!Number.isFinite(start)) continue;
-          const x = paragraphStartXByNumber.get(start);
+          const x = paragraphStartByNumber.get(start);
           if (x === undefined) continue;
           markers.push({ key, start, x, label: value.text ?? key });
         }
         return markers.sort((a, b) => a.start - b.start);
       }
 
+      // Axis times as h:mm, and the whole reading time as "3 h 45 min"
+      function fmtHours(ms) {
+        const mins = Math.round(ms / 60000);
+        return `${Math.floor(mins / 60)}:${String(mins % 60).padStart(2, "0")}`;
+      }
+      function fmtDuration(ms) {
+        const mins = Math.round(ms / 60000);
+        return `${Math.floor(mins / 60)} h ${mins % 60} min`;
+      }
+
+      let drawnWidth = 0;
       function draw() {
+        const width = container.clientWidth;
+        if (!width) return;
+        drawnWidth = width;
+        const wide = width >= 640;
+
         const data = buildData();
         const { chapterOf, sectionOf } = paragraphLookups();
+        const totalMs = data.at(-1)?.end ?? 0;
+        const bfPoints = data.filter((d) => d.bf !== null);
+        // A point at each paragraph's start and end, so that the line holds the
+        // paragraph's bf for as long as it takes to read
+        const steps = data.flatMap((d) => [{ x: d.start, bf: d.bf }, { x: d.end, bf: d.bf }]);
 
-        let cumulative = 0;
-        const paragraphStartXByNumber = new Map();
-        const allPoints = [];
-        for (const d of data) {
-          paragraphStartXByNumber.set(paragraphNumberFromKey(d.key), cumulative);
-          cumulative += d.ttr;
-          allPoints.push({ x: cumulative, bf: d.bf, key: d.key, text: d.text });
-        }
+        const paragraphStartByNumber = new Map(data.map((d) => [paragraphNumberFromKey(d.key), d.start]));
+        const sectionStartMarkers = buildStartMarkers(paragraphStartByNumber, isSectionKey);
+        const chapterStartMarkers = buildStartMarkers(paragraphStartByNumber, isChapterKey);
 
-        const bfPoints = allPoints.filter(d => d.bf !== null);
-        const sectionStartMarkers = buildStartMarkers(paragraphStartXByNumber, isSectionKey);
-        const chapterStartMarkers = buildStartMarkers(paragraphStartXByNumber, isChapterKey);
-
-        const totalMs = cumulative;
-
-        function fmtMs(ms) {
-          const s = Math.round(ms / 1000);
-          const m = Math.floor(s / 60);
-          const sec = s % 60;
-          return `${m}:${String(sec).padStart(2, "0")}`;
-        }
-
-        // Tooltip for each point: paragraph, bf, chapter and section, and the
-        // opening of the passage
-        function tipText(d) {
+        // A paragraph's bf, where it starts in the reading time, and its chapter
+        // and section: the tooltip, and the heading over its text below the chart
+        function describe(d) {
           const pnum = paragraphNumberFromKey(d.key);
           const chapter = chapterOf.get(pnum);
           const section = sectionOf.get(pnum);
           return [
-            `¶ ${d.key} · bf ${d.bf} (${beaufortNames[d.bf] ?? "?"}) · ${fmtMs(d.x)}`,
-            section ? `${chapter ? `${chapter.text} · ` : ""}${section.key}: ${plainText(section.desc)}` : null,
-            previewText(d.text, 140)
-          ].filter(Boolean).join("\n");
+            `¶ ${d.key} · bf ${d.bf} (${beaufortNames[d.bf] ?? "?"}) · at ${formatTtr(d.start)}`,
+            section ? `${chapter ? `${chapter.text} · ` : ""}${section.key}: ${plainText(section.desc)}` : null
+          ].filter(Boolean);
         }
 
+        caption.textContent = `Each paragraph’s Beaufort rating across about ${fmtDuration(totalMs)} of estimated reading time. Solid lines mark chapters and dashed lines sections. Hover over a point in the chart to see a paragraph.`;
+
+        const timeTicks = [];
+        for (let t = 0; t <= totalMs; t += (wide ? 30 : 60) * 60000) timeTicks.push(t);
+        const levels = [0, 2, 4, 6, 8, 10, 12];
+        const accent = "#85144b"; // the notebook's h3 and chapter-marker color
+
         const plot = Plot.plot({
-          title: "‘Beaufort Scale’ along Time to Read",
-          subtitle: `bf score per paragraph · x-axis spans full text (${fmtMs(totalMs)} estimated reading time)`,
-          width: 900,
-          height: 320,
-          marginLeft: 50,
-          marginBottom: 50,
-          x: {
-            label: "Cumulative reading time (mm:ss) →",
-            domain: [0, totalMs],
-            tickFormat: (d) => fmtMs(d),
-            ticks: 10
-          },
-          y: {
-            label: "↑ bf",
-            domain: [0, 12],
-            grid: true
-          },
+          width,
+          height: wide ? 340 : 260,
+          marginTop: 26,
+          marginLeft: 30,
+          marginRight: wide ? 104 : 12,
+          marginBottom: 40,
+          style: { fontFamily: "var(--sans-serif)", fontSize: "11px" },
+          x: { domain: [0, totalMs] },
+          y: { domain: [0, 12] },
           marks: [
-            Plot.ruleY([0], { stroke: "#ccc" }),
+            // A fill that deepens from calm to hurricane force
+            (index, { y }) => svg`<defs>
+              <linearGradient id="typhoon-bf-fill" gradientUnits="userSpaceOnUse" x1="0" x2="0" y1=${y(0)} y2=${y(12)}>
+                <stop offset="0" stop-color=${accent} stop-opacity="0.04"></stop>
+                <stop offset="1" stop-color=${accent} stop-opacity="0.45"></stop>
+              </linearGradient>
+            </defs>`,
+            Plot.gridY(levels, { strokeOpacity: 0.08 }),
             Plot.ruleX(sectionStartMarkers, {
               x: "x",
-              stroke: "#999",
-              strokeOpacity: 0.45,
-              strokeDasharray: "2,3",
-              strokeWidth: 1
+              stroke: "currentColor",
+              strokeOpacity: 0.18,
+              strokeDasharray: "2,3"
             }),
+            Plot.areaY(steps, { x: "x", y1: 0, y2: "bf", fill: "url(#typhoon-bf-fill)" }), // y1/y2 rather than y, which would stack
+            Plot.line(steps, { x: "x", y: "bf", stroke: accent, strokeWidth: 1.25 }),
             // Only chapter starts (I–VI) are labelled; the tooltip names the section
-            Plot.ruleX(chapterStartMarkers, {
-              x: "x",
-              stroke: "#999",
-              strokeWidth: 1
-            }),
+            Plot.ruleX(chapterStartMarkers, { x: "x", stroke: "currentColor", strokeOpacity: 0.45 }),
             Plot.text(chapterStartMarkers, {
               x: "x",
               y: 12,
@@ -3545,44 +3582,44 @@
               textAnchor: "start",
               lineAnchor: "bottom",
               dx: 3,
-              dy: -4,
-              fill: "#666",
-              fontSize: 11,
-              fontWeight: "bold"
+              dy: -6,
+              fontSize: 12,
+              fontWeight: 600
             }),
-            Plot.line(bfPoints, {
-              x: "x",
-              y: "bf",
-              stroke: "steelblue",
-              strokeWidth: 1,
-              curve: "monotone-x"
-            }),
-            Plot.dot(bfPoints, {
-              x: "x",
-              y: "bf",
-              fill: "steelblue",
-              r: 1.5,
-              tip: { lineWidth: 30 },
-              title: tipText
-            }),
-            Plot.ruleX([bfPoints.at(-1)?.x ?? 0], {
-              stroke: "#e07",
-              strokeDasharray: "4,3",
-              strokeWidth: 1
-            })
+            Plot.ruleY([0], { stroke: "currentColor", strokeOpacity: 0.35 }),
+            Plot.axisY(levels, { tickSize: 0, label: "bf" }),
+            // The Beaufort names beside the numbers, where there is room
+            wide ? Plot.axisY(levels, { anchor: "right", tickSize: 0, tickFormat: (d) => beaufortNames[d], label: null }) : null,
+            Plot.axisX(timeTicks, { tickFormat: fmtHours, label: "Estimated reading time (h:mm)" }),
+            Plot.ruleX(bfPoints, Plot.pointerX({ x: "mid", stroke: "currentColor", strokeOpacity: 0.3 })),
+            Plot.dot(bfPoints, Plot.pointerX({ x: "mid", y: "bf", r: 3.5, fill: accent, stroke: "white", strokeWidth: 1.5 })),
+            Plot.tip(bfPoints, Plot.pointerX({ x: "mid", y: "bf", title: (d) => describe(d).join("\n"), lineWidth: 32 }))
           ]
         });
 
-        container.innerHTML = "";
-        container.append(plot);
+        // The paragraph pointed at, in full; it stays when the pointer leaves
+        plot.addEventListener("input", () => {
+          const d = plot.value;
+          if (!d) return;
+          reader.replaceChildren(
+            html`<p class="typhoon-reader-head">${describe(d).join(" · ")} · <a href="#p${paragraphNumberFromKey(d.key)}">go to paragraph</a></p>`,
+            html`<p class="typhoon-prose">${plainText(d.text).trim()}</p>`
+          );
+        });
+
+        container.replaceChildren(plot);
       }
 
+      const observer = new ResizeObserver(() => {
+        if (container.clientWidth !== drawnWidth) draw();
+      });
+      observer.observe(container);
+      invalidation.then(() => observer.disconnect());
       draw();
 
       return { draw, container };
     })();
-
-</script>
+  </script>
   <script id="1954" type="text/markdown" hidden="">
     ---
     ## Utilities &nbsp; [ꜛ](#contents)
@@ -3623,9 +3660,8 @@
       return source[canonical] ?? source[`p${canonical}`];
     }
   </script>
-  <script id="1959" type="module">
-    import { RiTa } from "npm:rita";
-    const { syllables, isPunct, tokenize } = RiTa;
+  <script id="9893" type="module" hidden="">
+    import { timeToRead } from "https://cdn.jsdelivr.net/gh/observable2/scoringthespeltair@main/index.js"
   </script>
   <script id="9845" type="text/x-typescript">
     function extractBoldTexts (p) {
@@ -3640,7 +3676,7 @@
     function goCell(pnum) {
       const jumpToParagraph = (num) => {
         const n = Number(num);
-        if (!Number.isInteger(n) || n < 1) return;
+        if (!Number.isInteger(n) || n < 0) return;
         const id = "p" + n;
         const target = document.getElementById(id);
         if (!target) {
@@ -3720,7 +3756,7 @@
     function mkSec(out, snum, _desc, _start, _end, _actors, _sentence) {
       typhoon[`s${snum}`] = {desc:_desc, start:_start,end:_end, actors:_actors, _sentence:_sentence};
       registerSection();
-      out(html`<h6 id="s${snum}"> —s${snum}— ${_desc} ${typhoon[`s${snum}`].start}-${typhoon[`s${snum}`].end}<a href="#contents">&nbsp;ꜛ</a></h5>`)
+      out(html`<h6 id="s${snum}"> —s${snum}— ${_desc} ${typhoon[`s${snum}`].start}-${typhoon[`s${snum}`].end}<a href="#contents">&nbsp;ꜛ</a></h6>`)
     }
   </script>
   <script id="1961" type="module">
@@ -3734,50 +3770,15 @@
       return { totalMs, wordTimes };
     }
   </script>
-  <script id="1960" type="module" hidden="">
-    const PUNCT_PAUSE_MS = 700;
-    const VOWEL_WEIGHT = 1.5;
-
-    function normalize(token) {
-      token = token.trim();
-      // Remove any hyphen that is NOT the last character of the token
-      token = token.replace(/-(?!$)/g, "");
-      return token
-        .replace(/\*\*\*/g, "")
-        .replace(/\*\*/g, "")
-        .replace(/\*/g,"")
-        // use Unicode escapes to avoid editor silently converting curly quotes to straight ones
-        .replace(/[\u201C\u201D\u2018\u2019]/g, "");
-    }
-
-    function timeToRead(rawToken, lengthOfWhiteSpace = 1, factor = TIME_FACTOR) {
-      const token = normalize(rawToken);
-      const base = 33;
-      let ttr = base;
-      // add up to 3 extra base units for each unit of token length up to length 4
-      ttr += base * Math.min(Math.max(token.length - 1, 0), 3);
-      const syls = syllables(token).split("/");
-      const vowels = token.match(/[aeiouy]/gi);
-      const punc = tokenize(token).filter(t => isPunct(t));
-      ttr += syls.length * (base * 2);
-      if (vowels) ttr += (token.length > 4 ? vowels.length * (base * VOWEL_WEIGHT) : base * VOWEL_WEIGHT);
-      if (punc.length) ttr += punc.length * PUNCT_PAUSE_MS;
-      ttr += lengthOfWhiteSpace * (base * 2);
-      ttr = Math.round(ttr / factor);
-      return ttr;
-    }
-    // the number of millis in one minute is 6000; 45 mins: 270,000
-    // display(md`**<code>function timeToRead and helpers</code>**`)
-  </script>
   <script id="9886" type="module" hidden="">
     // Precomputed reading-time (ms) per paragraph, keyed by paragraph number.
-    // Generated once from `paragraphReadTimes(text).totalMs` for every paragraph
-    // in `typhoon`, using TIME_FACTOR = 20. This is a *frozen snapshot*: because
-    // paragraph text is now stable, we no longer recompute it on every load —
-    // we just look it up. If paragraph text or timeToRead()'s scoring ever
-    // changes, regenerate this object with the "regenerate ttr cache" utility
-    // below and paste the new literal in here.
-    const ttrCache = {"0":24787,"1":156667,"2":95042,"3":84333,"4":69143,"5":8866,"6":53662,"7":117500,"8":39791,"9":27321,"10":25606,"11":16086,"12":17839,"13":9740,"14":25262,"15":42444,"16":14468,"17":35271,"18":22846,"19":29939,"20":30954,"21":37796,"22":17509,"23":12133,"24":9100,"25":49671,"26":2863,"27":9068,"28":17471,"29":12393,"30":16791,"31":18562,"32":18321,"33":17707,"34":9401,"35":33694,"36":17645,"37":2815,"38":54458,"39":17987,"40":100866,"41":17396,"42":18543,"43":16094,"44":34432,"45":41244,"46":40392,"47":88900,"48":23645,"49":63785,"50":81229,"51":12792,"52":41673,"53":48828,"54":23264,"55":165197,"56":44963,"57":9559,"58":133569,"59":101357,"60":83914,"61":6277,"62":33654,"63":13479,"64":2451,"65":3984,"66":30877,"67":26519,"68":8209,"69":11577,"70":11515,"71":131336,"72":71270,"73":26416,"74":20251,"75":58751,"76":19008,"77":13654,"78":7980,"79":9878,"80":13660,"81":11034,"82":5988,"83":33418,"84":17923,"85":20996,"86":4136,"87":54437,"88":40612,"89":19563,"90":41690,"91":29401,"92":9247,"93":6334,"94":22081,"95":19197,"96":15329,"97":33909,"98":20010,"99":3480,"100":111384,"101":8745,"102":6852,"103":25587,"104":31445,"105":6758,"106":11005,"107":9082,"108":3299,"109":1857,"110":13363,"111":12016,"112":7995,"113":39086,"114":43386,"115":2820,"116":5684,"117":10227,"118":4692,"119":6154,"120":11820,"121":5922,"122":7811,"123":15306,"124":13894,"125":24155,"126":14073,"127":8632,"128":8251,"129":8080,"130":47887,"131":10975,"132":12775,"133":7078,"134":24995,"135":12286,"136":69271,"137":14865,"138":7501,"139":59396,"140":6411,"141":27966,"142":4175,"143":25820,"144":8013,"145":61399,"146":25835,"147":62031,"148":7589,"149":4925,"150":24442,"151":2599,"152":31187,"153":2715,"154":27121,"155":25054,"156":7310,"157":49296,"158":70743,"159":11000,"160":4159,"161":24563,"162":18481,"163":34023,"164":8263,"165":2780,"166":6357,"167":5084,"168":12877,"169":8410,"170":15474,"171":5723,"172":6478,"173":6592,"174":8572,"175":13622,"176":5184,"177":6234,"178":42455,"179":27845,"180":40071,"181":44340,"182":28067,"183":24778,"184":50455,"185":69933,"186":98291,"187":45298,"188":20494,"189":48103,"190":62806,"191":90882,"192":56022,"193":17317,"194":45602,"195":11186,"196":8467,"197":6751,"198":11423,"199":24266,"200":41550,"201":27728,"202":11277,"203":13240,"204":20254,"205":13262,"206":21414,"207":5459,"208":5040,"209":25779,"210":23364,"211":49664,"212":61033,"213":2286,"214":23372,"215":18007,"216":1295,"217":15312,"218":21902,"219":11963,"220":11117,"221":69812,"222":29184,"223":20781,"224":60921,"225":11548,"226":22691,"227":5464,"228":15009,"229":2919,"230":14709,"231":28314,"232":37571,"233":39350,"234":36037,"235":82013,"236":13488,"237":2126,"238":64960,"239":26992,"240":3586,"241":10256,"242":10894,"243":42714,"244":79694,"245":8582,"246":64286,"247":38894,"248":9242,"249":29609,"250":80328,"251":48491,"252":61433,"253":41662,"254":40780,"255":38292,"256":81871,"257":7607,"258":33867,"259":40059,"260":12868,"261":6503,"262":16110,"263":69890,"264":6983,"265":9204,"266":4947,"267":5419,"268":11429,"269":3300,"270":2506,"271":32365,"272":7551,"273":15002,"274":3954,"275":3499,"276":10463,"277":37998,"278":6401,"279":40831,"280":22598,"281":37210,"282":14831,"283":33645,"284":40068,"285":19125,"286":6156,"287":99271,"288":9980,"289":20421,"290":30010,"291":68869,"292":35610,"293":4065,"294":29376,"295":74599,"296":14067,"297":3663,"298":18054,"299":3410,"300":35596,"301":2203,"302":10150,"303":27598,"304":22523,"305":9966,"306":16970,"307":31492,"308":35254,"309":39785,"310":16314,"311":4423,"312":5430,"313":16613,"314":2980,"315":16694,"316":6904,"317":23696,"318":12575,"319":8011,"320":30210,"321":8305,"322":37052,"323":14668,"324":5624,"325":59273,"326":40948,"327":39941,"328":65122,"329":56657,"330":8591,"331":62344,"332":19580,"333":19992,"334":35603,"335":41892,"336":20882,"337":22216,"338":17102,"339":4175,"340":15597,"341":3956,"342":73342,"343":21670,"344":40562,"345":25220,"346":10085,"347":3482,"348":27587,"349":3101,"350":22259,"351":29215,"352":4158,"353":4859,"354":49336,"355":7503,"356":6608,"357":6313,"358":16430,"359":10800,"360":7894,"361":4065,"362":19799,"363":4709,"364":45293,"365":7285,"366":32143,"367":33613,"368":23729,"369":15889,"370":19844,"371":32341,"372":50702,"373":26647,"374":9512,"375":43624,"376":16872,"377":10404,"378":20596,"379":38037,"380":34091,"381":66186,"382":73290,"383":35169,"384":44126,"385":35722,"386":31164,"387":25279,"388":30837,"389":45034,"390":4182,"391":3563,"392":3514,"393":4242,"394":5002,"395":9573,"396":10510,"397":8218,"398":10144,"399":16482,"400":73135,"401":25812,"402":10075,"403":26693,"404":5486,"405":11722,"406":8731,"407":13397,"408":57562,"409":39001,"410":14232,"411":27564,"412":13371,"413":30356,"414":106015,"415":41497,"416":41621,"417":14915,"418":24923,"419":4523,"420":30165,"421":35933,"422":2667,"423":39087,"424":26588,"425":6648,"426":7695,"427":5227,"428":3795,"429":4556,"430":2533,"431":22803,"432":5282,"433":7930,"434":7385,"435":4148,"436":21977,"437":16713,"438":7689,"439":16528,"440":23926,"441":4858,"442":2077,"443":3822,"444":11019,"445":1995,"446":13225,"447":4864,"448":16626,"449":7653,"450":28858,"451":5955,"452":5854,"453":26026,"454":34914,"455":14219,"456":23318,"457":15162,"458":42533,"459":2550,"460":23807,"461":70182,"462":18649,"463":14052,"464":15168,"465":8546,"466":12557,"467":15557,"468":1311,"469":13636,"470":26493,"471":5661,"472":8984,"473":10918,"474":3679,"475":22875,"476":19406,"477":28324,"478":42372,"479":11033,"480":30980,"481":49479,"482":10467,"483":6776,"484":8979,"485":20614,"486":24142,"487":9160,"488":13311,"489":6929,"490":4022,"491":18240,"492":10069,"493":11203,"494":32829,"495":17909,"496":25998,"497":7875,"498":15953,"499":17624,"500":17579,"501":47873,"502":22286,"503":35140,"504":6422,"505":6280,"506":31832,"507":82903,"508":7083,"509":47660,"510":45084,"511":27580,"512":19585,"513":19943,"514":38744,"515":14543,"516":18272,"517":9790,"518":11330,"519":14267,"520":41268,"521":3399,"522":28267,"523":45382,"524":26743,"525":81504,"526":63767,"527":63444,"528":29631};
+    // Generated from `paragraphReadTimes(text).totalMs` for every paragraph in
+    // `typhoon`, using the imported `timeToRead` from
+    // observable2/scoringthespeltair (@main, default options).
+    // This is a *frozen snapshot*: we look values up rather than recompute them
+    // on every load. If paragraph text or the scoring ever changes, regenerate
+    // with the "Regenerate ttr cache" utility and paste the new literal here.
+    const ttrCache = {"0":29836,"1":175022,"2":114704,"3":92722,"4":79388,"5":11500,"6":62694,"7":131516,"8":48318,"9":28940,"10":26628,"11":21954,"12":21396,"13":12508,"14":27634,"15":44402,"16":16132,"17":35776,"18":28900,"19":34092,"20":37788,"21":43764,"22":20836,"23":13892,"24":8852,"25":63138,"26":3660,"27":11464,"28":18560,"29":11952,"30":21284,"31":23412,"32":18412,"33":19196,"34":10456,"35":36558,"36":19268,"37":3100,"38":58668,"39":20464,"40":115794,"41":20352,"42":20726,"43":17924,"44":31712,"45":51752,"46":49774,"47":105858,"48":28454,"49":75428,"50":96712,"51":8930,"52":49402,"53":53922,"54":24422,"55":175582,"56":50446,"57":11426,"58":152310,"59":124300,"60":102086,"61":6910,"62":40140,"63":14714,"64":2652,"65":2952,"66":37340,"67":33082,"68":9672,"69":13370,"70":15010,"71":162424,"72":85170,"73":26926,"74":21212,"75":68556,"76":20576,"77":13446,"78":9410,"79":9338,"80":14042,"81":11130,"82":5230,"83":34580,"84":21732,"85":19832,"86":4966,"87":65082,"88":50036,"89":19608,"90":52012,"91":34432,"92":11164,"93":5604,"94":22296,"95":22852,"96":17476,"97":41034,"98":22144,"99":3474,"100":131656,"101":9598,"102":7618,"103":24090,"104":42190,"105":7582,"106":9600,"107":8852,"108":2802,"109":1756,"110":15050,"111":13668,"112":6164,"113":41524,"114":52126,"115":2690,"116":6686,"117":12322,"118":4520,"119":4558,"120":13070,"121":6388,"122":7284,"123":16320,"124":15984,"125":23080,"126":14638,"127":9300,"128":7806,"129":8850,"130":51384,"131":12996,"132":12960,"133":6574,"134":30506,"135":14266,"136":82856,"137":16282,"138":7954,"139":67068,"140":6834,"141":29314,"142":4594,"143":28458,"144":8626,"145":64416,"146":28304,"147":71506,"148":7956,"149":4408,"150":25730,"151":3286,"152":36368,"153":3286,"154":30396,"155":26252,"156":6724,"157":60898,"158":86028,"159":11390,"160":4258,"161":29870,"162":21694,"163":40812,"164":6090,"165":3734,"166":4148,"167":5452,"168":8818,"169":10194,"170":14640,"171":5380,"172":6312,"173":7880,"174":7620,"175":17212,"176":5602,"177":8102,"178":50782,"179":35544,"180":47124,"181":52274,"182":29240,"183":28640,"184":56086,"185":84498,"186":114858,"187":51156,"188":23226,"189":54556,"190":80162,"191":105262,"192":65756,"193":15836,"194":49664,"195":10234,"196":8366,"197":8364,"198":9936,"199":30244,"200":48242,"201":31554,"202":14972,"203":15608,"204":24084,"205":15012,"206":25876,"207":4782,"208":5454,"209":28716,"210":26438,"211":58736,"212":68670,"213":2764,"214":25392,"215":20164,"216":972,"217":17438,"218":18826,"219":14114,"220":7958,"221":80020,"222":32636,"223":24868,"224":71172,"225":13442,"226":24274,"227":6348,"228":14640,"229":3026,"230":18334,"231":30958,"232":46076,"233":45442,"234":42380,"235":92380,"236":15720,"237":1570,"238":78636,"239":30992,"240":2542,"241":9860,"242":12808,"243":45524,"244":87042,"245":8478,"246":76172,"247":43688,"248":9598,"249":29090,"250":95326,"251":54666,"252":67998,"253":43280,"254":49436,"255":42196,"256":95930,"257":7470,"258":38272,"259":48690,"260":15794,"261":7132,"262":15052,"263":77184,"264":8140,"265":10120,"266":3326,"267":5528,"268":13404,"269":2466,"270":2130,"271":26222,"272":8514,"273":9864,"274":4518,"275":3362,"276":10942,"277":42794,"278":5604,"279":44738,"280":23974,"281":40108,"282":16654,"283":35886,"284":43018,"285":20838,"286":7468,"287":113180,"288":9338,"289":23188,"290":33868,"291":82258,"292":40702,"293":3288,"294":32526,"295":87376,"296":17512,"297":3698,"298":18524,"299":3846,"300":38090,"301":2390,"302":11912,"303":27860,"304":23900,"305":8592,"306":19530,"307":36294,"308":36898,"309":48880,"310":16508,"311":4594,"312":5826,"313":14120,"314":2652,"315":14232,"316":8104,"317":23490,"318":12774,"319":9934,"320":34690,"321":9148,"322":45106,"323":13410,"324":4858,"325":67810,"326":49252,"327":49624,"328":74534,"329":65122,"330":9150,"331":67738,"332":24008,"333":24756,"334":39918,"335":49848,"336":19272,"337":24982,"338":19754,"339":3698,"340":17850,"341":2094,"342":81106,"343":26734,"344":45596,"345":31588,"346":10494,"347":3026,"348":31776,"349":2952,"350":27144,"351":30472,"352":4444,"353":4296,"354":56272,"355":7730,"356":7096,"357":6312,"358":17402,"359":12138,"360":10044,"361":3326,"362":18412,"363":4184,"364":45260,"365":7806,"366":30552,"367":38124,"368":23118,"369":15910,"370":23412,"371":38944,"372":57804,"373":31254,"374":9412,"375":48768,"376":16882,"377":13068,"378":25390,"379":44436,"380":41968,"381":72594,"382":85362,"383":43088,"384":49924,"385":42380,"386":38162,"387":30020,"388":37488,"389":55560,"390":3176,"391":4258,"392":3586,"393":4146,"394":4594,"395":10158,"396":12696,"397":9076,"398":11800,"399":18894,"400":90434,"401":25172,"402":9786,"403":25658,"404":5640,"405":11542,"406":9076,"407":13780,"408":68778,"409":46114,"410":14938,"411":32298,"412":17176,"413":35660,"414":122550,"415":43654,"416":51674,"417":16766,"418":31102,"419":4594,"420":35734,"421":39992,"422":2540,"423":45928,"424":30544,"425":6350,"426":6388,"427":4334,"428":3474,"429":4594,"430":2838,"431":23378,"432":6012,"433":9112,"434":8552,"435":3102,"436":21586,"437":15648,"438":7694,"439":17964,"440":26326,"441":5156,"442":1234,"443":4742,"444":13816,"445":1010,"446":14788,"447":4446,"448":17964,"449":8776,"450":28346,"451":4894,"452":7206,"453":30058,"454":42082,"455":12998,"456":27594,"457":17438,"458":46864,"459":2838,"460":23640,"461":77594,"462":21134,"463":13632,"464":18594,"465":9374,"466":12362,"467":18148,"468":1084,"469":16056,"470":26626,"471":6722,"472":8442,"473":11466,"474":3698,"475":22632,"476":24122,"477":33084,"478":49104,"479":10196,"480":33236,"481":55226,"482":9078,"483":6760,"484":8814,"485":19160,"486":23416,"487":9896,"488":15086,"489":7396,"490":4406,"491":19682,"492":9860,"493":11354,"494":42154,"495":21060,"496":27672,"497":9074,"498":18858,"499":17590,"500":20240,"501":53100,"502":21774,"503":41148,"504":5380,"505":6312,"506":36556,"507":93724,"508":8028,"509":54962,"510":53544,"511":29462,"512":23448,"513":21844,"514":40404,"515":14900,"516":19118,"517":7248,"518":11390,"519":13594,"520":47346,"521":2764,"522":29202,"523":45300,"524":29872,"525":91108,"526":74750,"527":73448,"528":35136};
     // display(md`Loaded **${Object.keys(ttrCache).length}** cached paragraph read-times.`);
   </script>
   <script id="1965" type="text/markdown" hidden="">
@@ -3832,6 +3833,187 @@
       #toc .toc-contents a[aria-current] {
         font-weight: 700;
         color: var(--theme-foreground);
+      }
+      /* Notes & Visualizations: the chart, and the tables with their filters.
+         The longer selectors outrank the Observable Inputs defaults. */
+      .typhoon-chart,
+      .typhoon-table {
+        padding-top: 1.5rem;
+        margin-bottom: 1rem;
+      }
+      .typhoon-caption {
+        margin-bottom: 0.9rem;
+        font: 13px/1.5 var(--sans-serif);
+        color: var(--theme-foreground-muted);
+      }
+      .typhoon-caption strong {
+        color: var(--theme-foreground);
+      }
+      /* the paragraph pointed at in the chart, shown in full below it */
+      .typhoon-reader {
+        min-height: 6.5rem;
+        margin-top: 0.5rem;
+        padding: 12px 16px;
+        border: 1px solid var(--theme-foreground-faintest);
+        border-radius: 8px;
+        background: var(--theme-background-alt);
+      }
+      .typhoon-reader-head {
+        margin-bottom: 0.35rem;
+        font: 12px/1.5 var(--sans-serif);
+        color: var(--theme-foreground-muted);
+      }
+      .typhoon-reader p.typhoon-prose {
+        margin-bottom: 0;
+        font-size: 15px;
+      }
+      .typhoon-panel {
+        border: 1px solid var(--theme-foreground-faintest);
+        border-radius: 8px;
+        overflow: hidden;
+      }
+      .typhoon-filters {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-end;
+        gap: 10px;
+        padding: 12px 14px;
+        background: var(--theme-background-alt);
+        border-bottom: 1px solid var(--theme-foreground-faintest);
+      }
+      .typhoon-filters > form.inputs-3a86ea {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 4px;
+        width: auto;
+        max-width: 100%;
+        min-height: 0;
+        margin: 0;
+      }
+      .typhoon-filters > form.inputs-3a86ea > label {
+        width: auto;
+        margin: 0;
+        padding: 0;
+        font-size: 12px;
+        color: var(--theme-foreground-muted);
+      }
+      .typhoon-filters > form.typhoon-search {
+        flex: 1 1 180px;
+      }
+      .typhoon-filters form.inputs-3a86ea select,
+      .typhoon-filters form.inputs-3a86ea input[type="search"],
+      .typhoon-filters button.typhoon-reset {
+        height: 30px;
+        border: 1px solid var(--theme-foreground-faintest);
+        border-radius: 6px;
+        background-color: var(--theme-background);
+        font: 13px var(--sans-serif);
+        color: var(--theme-foreground);
+      }
+      .typhoon-filters form.inputs-3a86ea select {
+        appearance: none;
+        padding: 0 28px 0 9px;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%236b6f76' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 10px center;
+        cursor: pointer;
+      }
+      .typhoon-filters form.inputs-3a86ea input[type="search"] {
+        width: 100%;
+        padding: 0 10px;
+      }
+      .typhoon-filters button.typhoon-reset {
+        padding: 0 12px;
+        cursor: pointer;
+      }
+      .typhoon-filters button.typhoon-reset:disabled {
+        color: var(--theme-foreground-faint);
+        cursor: default;
+      }
+      .typhoon-filters form.inputs-3a86ea select:hover,
+      .typhoon-filters form.inputs-3a86ea input[type="search"]:hover,
+      .typhoon-filters button.typhoon-reset:enabled:hover {
+        border-color: var(--theme-foreground-fainter);
+      }
+      .typhoon-filters :focus-visible {
+        outline: 2px solid var(--theme-foreground-focus);
+        outline-offset: 1px;
+      }
+      .typhoon-panel .inputs-3a86ea.inputs-3a86ea-table {
+        margin: 0;
+        max-width: none;
+        /* a shadow along the bottom while there are more rows to scroll to */
+        background:
+          linear-gradient(transparent, var(--theme-background) 70%) center bottom / 100% 40px no-repeat local,
+          radial-gradient(farthest-side at 50% 100%, rgba(0, 0, 0, 0.14), transparent) center bottom / 100% 12px no-repeat scroll;
+      }
+      .typhoon-panel .inputs-3a86ea.inputs-3a86ea-table table {
+        font: 13px/1.45 var(--sans-serif);
+      }
+      .typhoon-panel .inputs-3a86ea.inputs-3a86ea-table tr > :first-child {
+        display: none; /* the row-selection column, not used here */
+      }
+      .typhoon-panel .inputs-3a86ea.inputs-3a86ea-table th,
+      .typhoon-panel .inputs-3a86ea.inputs-3a86ea-table td {
+        box-sizing: border-box; /* column widths include the padding */
+        padding: 7px 10px;
+        white-space: normal;
+        overflow-wrap: break-word;
+      }
+      .typhoon-panel .inputs-3a86ea.inputs-3a86ea-table th {
+        padding-top: 9px;
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--theme-foreground-muted);
+        white-space: nowrap;
+      }
+      .typhoon-panel tbody tr:hover > td {
+        background: color-mix(in srgb, var(--theme-foreground) 3%, var(--theme-background));
+      }
+      /* chapter rows shaded, and chapter and section titles in bold */
+      .typhoon-panel tr:has(a[data-type="chapter"]) > td {
+        background: var(--theme-background-alt);
+      }
+      .typhoon-panel tr:has(a[data-type="chapter"]) > td,
+      .typhoon-panel tr:has(a[data-type="section"]) .typhoon-prose {
+        font-weight: 600;
+      }
+      .typhoon-prose {
+        font: 14.5px/1.45 var(--serif);
+      }
+      /* a paragraph shows three lines until it is selected */
+      .typhoon-more summary {
+        display: block;
+        list-style: none;
+        cursor: pointer;
+      }
+      .typhoon-more summary::-webkit-details-marker {
+        display: none;
+      }
+      .typhoon-more:not([open]) .typhoon-prose {
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 3;
+        line-clamp: 3;
+        overflow: hidden;
+      }
+      .typhoon-more summary:focus-visible {
+        outline: 2px solid var(--theme-foreground-focus);
+        outline-offset: 2px;
+      }
+      @media (max-width: 480px) {
+        .typhoon-filters {
+          padding: 10px 12px;
+        }
+      }
+      @media (pointer: coarse) {
+        .typhoon-filters form.inputs-3a86ea select,
+        .typhoon-filters form.inputs-3a86ea input[type="search"],
+        .typhoon-filters button.typhoon-reset {
+          height: 36px;
+          font-size: 16px; /* keeps phones from zooming in on focus */
+        }
       }
     </style>
   </script>
