@@ -4,6 +4,7 @@
   },
   "scripts": {
     "preview": "notebooks preview --root nbks --template nbks/resources/custom.tmpl",
-    "build": "notebooks build --root nbks --out ../dist --template nbks/resources/custom.tmpl -- nbks/*.html"
+    "build": "notebooks build --root nbks --out ../dist --template nbks/resources/custom.tmpl -- nbks/*.html && npm run build:art",
+    "build:art": "rm -rf dist/art && git clone --depth 1 --quiet https://github.com/typhoonworkshop/typhoon.git dist/art && rm -rf dist/art/.git"
   }
 }

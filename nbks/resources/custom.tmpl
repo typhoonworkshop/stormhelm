@@ -11,6 +11,18 @@
     <link rel="icon" href="resources/favicon.ico" sizes="32x32">
     <link rel="icon" href="resources/favicon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="resources/home-screen-icon.png">
+    <script>
+      if (location.hostname === "stormhelm.net") {
+        const tag = document.createElement("script");
+        tag.async = true;
+        tag.src = "https://www.googletagmanager.com/gtag/js?id=G-FDTDHHESS4";
+        document.head.append(tag);
+        window.dataLayer = window.dataLayer || [];
+        window.gtag = function () { dataLayer.push(arguments); };
+        gtag("js", new Date());
+        gtag("config", "G-FDTDHHESS4");
+      }
+    </script>
     <style type="text/css">
       @import url("observable:styles/index.css");
       @import url("@fontsource-variable/inter/wght.css");
@@ -126,7 +138,7 @@
       <ul>
         <p style="font-family: var(--serif);"><a href="./">Typhoon</a></p>
         <li><a href="https://openreview.net/pdf?id=xYIJySuMt6">Paper</a></li>
-        <li><a href="https://typhoonworkshop.github.io/typhoon/">Art Installation</a></li>
+        <li><a href="art/">Art Installation</a></li>
         <li><a href="analysis">Datafied Close Reading</a></li>
       </ul>
     </nav>
